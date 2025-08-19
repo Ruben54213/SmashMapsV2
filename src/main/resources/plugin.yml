@@ -1,4 +1,38 @@
 name: SmashMapsV2
-version: '1.0-ALPHA'
+version: '${project.version}'
 main: net.Ruben54213.SmashMapsV2
 api-version: '1.21'
+authors: [ Ruben54213 ]
+description: Smash Map Creation System
+
+commands:
+  smashmaps:
+    description: Reload SmashMapsV2 configuration
+    usage: /smashmaps reload
+    permission: smashmaps.reload
+
+permissions:
+  smashmaps.reload:
+    description: "Allows reloading the plugin configuration"
+    default: op
+  smashmaps.maplimit.1:
+    description: "Allows player to create 1 map"
+    default: true
+  smashmaps.maplimit.2:
+    description: "Allows player to create 2 maps"
+    default: false
+  smashmaps.maplimit.3:
+    description: "Allows player to create 3 maps"
+    default: false
+  smashmaps.maplimit.4:
+    description: "Allows player to create 4 maps"
+    default: false
+  smashmaps.maplimit.5:
+    description: "Allows player to create 5 maps"
+    default: false
+  smashmaps.maplimit.10:
+    description: "Allows player to create 10 maps"
+    default: false
+  smashmaps.maplimit.unlimited:
+    description: "Allows player to create unlimited maps"
+    default: op
