@@ -1,0 +1,4 @@
+name: SmashMapsV2
+version: '1.0-ALPHA'
+main: net.Ruben54213.SmashMapsV2
+api-version: '1.21'
