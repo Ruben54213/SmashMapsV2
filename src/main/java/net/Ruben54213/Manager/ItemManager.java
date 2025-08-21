@@ -42,7 +42,6 @@ public class ItemManager implements Listener {
             List<String> lore = Arrays.asList(loreArray);
             meta.setLore(lore);
 
-            // Add custom NBT tag to identify the inventory item
             meta.getPersistentDataContainer().set(
                     new org.bukkit.NamespacedKey(plugin, "inventory_item"),
                     org.bukkit.persistence.PersistentDataType.BOOLEAN,
@@ -75,7 +74,6 @@ public class ItemManager implements Listener {
             List<String> lore = Arrays.asList(loreArray);
             meta.setLore(lore);
 
-            // Add custom NBT tag to identify the map creation item
             meta.getPersistentDataContainer().set(
                     new org.bukkit.NamespacedKey(plugin, "map_creation_item"),
                     org.bukkit.persistence.PersistentDataType.BOOLEAN,
@@ -108,7 +106,6 @@ public class ItemManager implements Listener {
             List<String> lore = Arrays.asList(loreArray);
             meta.setLore(lore);
 
-            // Add custom NBT tag to identify the overview item
             meta.getPersistentDataContainer().set(
                     new org.bukkit.NamespacedKey(plugin, "map_overview_item"),
                     org.bukkit.persistence.PersistentDataType.BOOLEAN,
@@ -121,54 +118,90 @@ public class ItemManager implements Listener {
         return item;
     }
 
-    public void giveInventoryItem(Player player) {
-        ItemStack inventoryItem = createInventoryItem();
-        ItemStack overviewItem = createMapOverviewItem();
+    public ItemStack createAllMapsItem() {
+        Material material;
+        try {
+            material = Material.valueOf(plugin.getConfigManager().getAllMapsMaterial());
+        } catch (IllegalArgumentException e) {
+            plugin.getLogger().warning("Invalid all maps material in config, using COMPASS");
+            material = Material.COMPASS;
+        }
 
-        // Clear all items except plugin items before giving new ones
-        clearInventoryExceptPluginItems(player);
+        ItemStack item = new ItemStack(material);
+        ItemMeta meta = item.getItemMeta();
 
-        // Set specific slots for inventory items
-        int inventorySlot = plugin.getConfigManager().getInventoryItemSlot();
-        int overviewSlot = plugin.getConfigManager().getMapOverviewSlot();
+        if (meta != null) {
+            String name = plugin.getConfigManager().getAllMapsName();
+            meta.setDisplayName(name);
 
-        player.getInventory().setItem(inventorySlot, inventoryItem);
-        player.getInventory().setItem(overviewSlot, overviewItem);
+            String[] loreArray = plugin.getConfigManager().getAllMapsLore();
+            List<String> lore = Arrays.asList(loreArray);
+            meta.setLore(lore);
 
-        // Ensure navigation item is preserved/given (slot 8)
-        plugin.getNavigationItemManager().giveNavigationItem(player);
+            meta.getPersistentDataContainer().set(
+                    new org.bukkit.NamespacedKey(plugin, "all_maps_item"),
+                    org.bukkit.persistence.PersistentDataType.BOOLEAN,
+                    true
+            );
 
-        // Update inventory
-        player.updateInventory();
+            item.setItemMeta(meta);
+        }
+
+        return item;
     }
 
-    /**
-     * Clear all items from player inventory except plugin items
-     */
     public void clearInventoryExceptPluginItems(Player player) {
         for (int i = 0; i < player.getInventory().getSize(); i++) {
             ItemStack item = player.getInventory().getItem(i);
 
-            // Skip if slot is empty
             if (item == null || item.getType() == Material.AIR) {
                 continue;
             }
 
-            // Check if item is a plugin item
             if (!isPluginItem(item)) {
-                // Not a plugin item - remove it
                 player.getInventory().setItem(i, null);
             }
         }
     }
 
-    /**
-     * Check if an item is any of our plugin items
-     */
+    public void giveInventoryItem(Player player) {
+        ItemStack inventoryItem = createInventoryItem();
+        ItemStack overviewItem = createMapOverviewItem();
+        ItemStack allMapsItem = createAllMapsItem();
+
+        clearInventoryExceptPluginItems(player);
+
+        int allMapsSlot = plugin.getConfigManager().getAllMapsSlot();
+        int inventorySlot = plugin.getConfigManager().getInventoryItemSlot();
+        int overviewSlot = plugin.getConfigManager().getMapOverviewSlot();
+
+        player.getInventory().setItem(allMapsSlot, allMapsItem);
+        player.getInventory().setItem(inventorySlot, inventoryItem);
+        player.getInventory().setItem(overviewSlot, overviewItem);
+
+        plugin.getNavigationItemManager().giveNavigationItem(player);
+        player.updateInventory();
+    }
+
+    public boolean isAllMapsItem(ItemStack item) {
+        if (item == null || item.getType() == Material.AIR) {
+            return false;
+        }
+
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) {
+            return false;
+        }
+
+        org.bukkit.NamespacedKey key = new org.bukkit.NamespacedKey(plugin, "all_maps_item");
+        return meta.getPersistentDataContainer().has(key, org.bukkit.persistence.PersistentDataType.BOOLEAN);
+    }
+
     public boolean isPluginItem(ItemStack item) {
         return isInventoryItem(item) ||
                 isMapOverviewItem(item) ||
                 isMapCreationItem(item) ||
+                isAllMapsItem(item) ||
                 plugin.getNavigationItemManager().isExitMapItem(item) ||
                 plugin.getNavigationItemManager().isLobbyItem(item);
     }
@@ -183,7 +216,6 @@ public class ItemManager implements Listener {
             return false;
         }
 
-        // Check for custom NBT tag first (most reliable)
         org.bukkit.NamespacedKey key = new org.bukkit.NamespacedKey(plugin, "map_overview_item");
         return meta.getPersistentDataContainer().has(key, org.bukkit.persistence.PersistentDataType.BOOLEAN);
     }
@@ -198,7 +230,6 @@ public class ItemManager implements Listener {
             return false;
         }
 
-        // Check for custom NBT tag first (most reliable)
         org.bukkit.NamespacedKey key = new org.bukkit.NamespacedKey(plugin, "inventory_item");
         return meta.getPersistentDataContainer().has(key, org.bukkit.persistence.PersistentDataType.BOOLEAN);
     }
@@ -213,7 +244,6 @@ public class ItemManager implements Listener {
             return false;
         }
 
-        // Check for custom NBT tag first (most reliable)
         org.bukkit.NamespacedKey key = new org.bukkit.NamespacedKey(plugin, "map_creation_item");
         return meta.getPersistentDataContainer().has(key, org.bukkit.persistence.PersistentDataType.BOOLEAN);
     }
@@ -222,14 +252,12 @@ public class ItemManager implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
 
-        // Give the inventory items when player joins (without clearing inventory)
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             giveInventoryItem(player);
-        }, 20L); // Delay by 1 second to ensure player is fully loaded
+        }, 20L);
     }
 
     public void updateAllPlayersItems() {
-        // Update items for all online players
         for (Player player : Bukkit.getOnlinePlayers()) {
             giveInventoryItem(player);
         }

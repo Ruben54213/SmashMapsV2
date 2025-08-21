@@ -1,6 +1,7 @@
 package net.Ruben54213.Listeners;
 
 import net.Ruben54213.SmashMapsV2;
+import net.Ruben54213.GUIs.AllMapsGui;
 import net.Ruben54213.GUIs.MapCreationGui;
 import net.Ruben54213.GUIs.MapOverviewGui;
 import net.Ruben54213.Models.SmashMap;
@@ -12,9 +13,14 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
 public class GuiListener implements Listener {
 
     private final SmashMapsV2 plugin;
+    private final Map<UUID, AllMapsGui> allMapsGuis = new HashMap<>();
 
     public GuiListener(SmashMapsV2 plugin) {
         this.plugin = plugin;
@@ -42,17 +48,23 @@ public class GuiListener implements Listener {
         else if (isMapOverviewGui(inventoryTitle)) {
             handleMapOverviewGui(event, player);
         }
+        // Check if it's the all maps GUI
+        else if (isAllMapsGui(inventoryTitle)) {
+            handleAllMapsGui(event, player);
+        }
     }
 
     private boolean isPluginGui(String title) {
-        // Check against all possible GUI titles from config
         String mapCreationTitle = plugin.getConfigManager().getGuiTitle();
         String mapOverviewTitle = plugin.getConfigManager().getMapOverviewTitle()
-                .replace("%player%", ""); // Remove player placeholder for general check
+                .replace("%player%", "");
+        String allMapsTitle = plugin.getConfigManager().getAllMapsTitle();
 
         return title.equals(mapCreationTitle) ||
                 title.contains(mapOverviewTitle.trim()) ||
-                title.contains("Karten von"); // Fallback for hardcoded German title
+                title.contains("Karten von") ||
+                title.contains(allMapsTitle) ||
+                title.startsWith(allMapsTitle);
     }
 
     private boolean isMapCreationGui(String title) {
@@ -61,16 +73,19 @@ public class GuiListener implements Listener {
 
     private boolean isMapOverviewGui(String title) {
         String configTitle = plugin.getConfigManager().getMapOverviewTitle()
-                .replace("%player%", ""); // Remove placeholder
+                .replace("%player%", "");
         return title.contains(configTitle.trim()) || title.contains("Karten von");
     }
 
+    private boolean isAllMapsGui(String title) {
+        String configTitle = plugin.getConfigManager().getAllMapsTitle();
+        return title.contains(configTitle) || title.startsWith(configTitle);
+    }
+
     private void handleMapCreationGui(InventoryClickEvent event, Player player) {
-        // Check if clicked item is the map creation item
         if (event.getCurrentItem() != null &&
                 plugin.getItemManager().isMapCreationItem(event.getCurrentItem())) {
 
-            // Check if player can create more maps
             if (!plugin.getMapManager().canCreateMap(player)) {
                 int limit = plugin.getMapManager().getPlayerMapLimit(player);
                 String message = plugin.getConfigManager().getPrefix() +
@@ -81,24 +96,20 @@ public class GuiListener implements Listener {
                 return;
             }
 
-            // Close inventory and request map name
             player.closeInventory();
 
             String message = plugin.getConfigManager().getPrefix() + plugin.getConfigManager().getMessage("map_name_request");
             player.sendMessage(message);
 
-            // Show title for map name input
             String nameTitle = plugin.getConfigManager().getMessage("map_name_title");
             String nameSubtitle = plugin.getConfigManager().getMessage("map_name_subtitle");
             player.sendTitle(nameTitle, nameSubtitle, 10, 100, 20);
 
-            // Register player for chat input
             ChatInputManager.addPlayerWaitingForInput(player.getUniqueId());
         }
     }
 
     private void handleMapOverviewGui(InventoryClickEvent event, Player player) {
-        // Check if clicked item has a map ID
         if (event.getCurrentItem() != null) {
             ItemMeta meta = event.getCurrentItem().getItemMeta();
             if (meta != null && meta.getPersistentDataContainer().has(
@@ -109,30 +120,122 @@ public class GuiListener implements Listener {
                         new org.bukkit.NamespacedKey(plugin, "map_id"),
                         PersistentDataType.INTEGER);
 
-                // Find the map and teleport player
                 SmashMap map = plugin.getMapManager().getMapById(mapId);
                 if (map != null && map.getOwnerUUID().equals(player.getUniqueId())) {
                     player.closeInventory();
 
-                    // Teleport player to map
                     plugin.getWorldManager().teleportToMap(player, map);
 
                     String teleportMessage = plugin.getConfigManager().getPrefix() +
                             plugin.getConfigManager().getMessage("map_teleported").replace("%name%", map.getName());
                     player.sendMessage(teleportMessage);
                 } else if (map == null) {
-                    // Map not found error
                     String errorMessage = plugin.getConfigManager().getPrefix() +
                             plugin.getConfigManager().getMessage("map_not_found");
                     player.sendMessage(errorMessage);
                     player.playSound(player.getLocation(), plugin.getConfigManager().getSound("error"), 1.0f, 1.0f);
                 } else {
-                    // Not owner error
                     String errorMessage = plugin.getConfigManager().getPrefix() +
                             plugin.getConfigManager().getMessage("map_not_owner");
                     player.sendMessage(errorMessage);
                     player.playSound(player.getLocation(), plugin.getConfigManager().getSound("error"), 1.0f, 1.0f);
                 }
+            }
+        }
+    }
+
+    private void handleAllMapsGui(InventoryClickEvent event, Player player) {
+        if (event.getCurrentItem() == null) return;
+
+        ItemMeta meta = event.getCurrentItem().getItemMeta();
+        if (meta == null) return;
+
+        AllMapsGui gui = allMapsGuis.get(player.getUniqueId());
+        if (gui == null) return;
+
+        // Check for navigation items
+        if (meta.getPersistentDataContainer().has(
+                new org.bukkit.NamespacedKey(plugin, "all_maps_nav"),
+                PersistentDataType.STRING)) {
+
+            String navAction = meta.getPersistentDataContainer().get(
+                    new org.bukkit.NamespacedKey(plugin, "all_maps_nav"),
+                    PersistentDataType.STRING);
+
+            switch (navAction) {
+                case "prev_page":
+                    gui.previousPage();
+                    break;
+                case "next_page":
+                    gui.nextPage();
+                    break;
+                case "filter":
+                    gui.cycleFilter();
+                    break;
+                case "sort":
+                    gui.cycleSort();
+                    break;
+                case "search":
+                    player.closeInventory();
+                    allMapsGuis.remove(player.getUniqueId());
+
+                    player.sendMessage(plugin.getConfigManager().getPrefix() +
+                            "§6Gebe den Namen der Map ein, nach der du suchen möchtest:");
+
+                    // Add player to search waiting list
+                    ChatInputManager.addPlayerWaitingForSearchInput(player.getUniqueId());
+                    break;
+            }
+            return;
+        }
+
+        // Check for map items
+        if (meta.getPersistentDataContainer().has(
+                new org.bukkit.NamespacedKey(plugin, "map_id"),
+                PersistentDataType.INTEGER)) {
+
+            int mapId = meta.getPersistentDataContainer().get(
+                    new org.bukkit.NamespacedKey(plugin, "map_id"),
+                    PersistentDataType.INTEGER);
+
+            SmashMap map = plugin.getMapManager().getMapById(mapId);
+            if (map != null) {
+                player.closeInventory();
+                allMapsGuis.remove(player.getUniqueId());
+
+                plugin.getWorldManager().teleportToMap(player, map);
+
+                String teleportMessage = plugin.getConfigManager().getPrefix() +
+                        plugin.getConfigManager().getMessage("map_teleported").replace("%name%", map.getName());
+                player.sendMessage(teleportMessage);
+            } else {
+                String errorMessage = plugin.getConfigManager().getPrefix() +
+                        plugin.getConfigManager().getMessage("map_not_found");
+                player.sendMessage(errorMessage);
+                player.playSound(player.getLocation(), plugin.getConfigManager().getSound("error"), 1.0f, 1.0f);
+            }
+        }
+    }
+
+    // Method to register AllMapsGui for a player
+    public void registerAllMapsGui(Player player, AllMapsGui gui) {
+        allMapsGuis.put(player.getUniqueId(), gui);
+    }
+
+    // Clean up when player closes inventory
+    @EventHandler
+    public void onInventoryClose(org.bukkit.event.inventory.InventoryCloseEvent event) {
+        if (event.getPlayer() instanceof Player) {
+            Player player = (Player) event.getPlayer();
+            String title = event.getView().getTitle();
+
+            if (isAllMapsGui(title)) {
+                // Clean up with a small delay in case they're reopening immediately
+                plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+                    if (!player.getOpenInventory().getTitle().equals(title)) {
+                        allMapsGuis.remove(player.getUniqueId());
+                    }
+                }, 1L);
             }
         }
     }

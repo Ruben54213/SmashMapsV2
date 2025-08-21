@@ -1,3 +1,4 @@
+
 package net.Ruben54213.Manager;
 
 import net.Ruben54213.SmashMapsV2;
@@ -24,6 +25,10 @@ public class MapManager {
         this.mapsFile = new File(plugin.getDataFolder(), "maps.yml");
         loadMaps();
     }
+    public int getNextMapId() {
+        return nextMapId;
+    }
+
 
     private void loadMaps() {
         if (!mapsFile.exists()) {
@@ -44,6 +49,7 @@ public class MapManager {
                 String ownerUUID = mapsConfig.getString("maps." + mapId + ".owner");
                 String mapName = mapsConfig.getString("maps." + mapId + ".name");
                 String worldName = mapsConfig.getString("maps." + mapId + ".world");
+                boolean approved = mapsConfig.getBoolean("maps." + mapId + ".approved", false);
 
                 // Load icon data
                 String iconMaterialString = mapsConfig.getString("maps." + mapId + ".icon_material", "GRASS_BLOCK");
@@ -56,7 +62,7 @@ public class MapManager {
                     iconMaterial = org.bukkit.Material.GRASS_BLOCK;
                 }
 
-                SmashMap map = new SmashMap(Integer.parseInt(mapId), UUID.fromString(ownerUUID), mapName, worldName, iconMaterial, iconDisplayName);
+                SmashMap map = new SmashMap(Integer.parseInt(mapId), UUID.fromString(ownerUUID), mapName, worldName, iconMaterial, iconDisplayName, approved);
 
                 UUID playerUUID = UUID.fromString(ownerUUID);
                 playerMaps.computeIfAbsent(playerUUID, k -> new ArrayList<>()).add(map);
@@ -73,11 +79,39 @@ public class MapManager {
         // Save to memory
         playerMaps.computeIfAbsent(player.getUniqueId(), k -> new ArrayList<>()).add(map);
 
+        // Create the world immediately
+        plugin.getWorldManager().createMapWorld(map);
+
         // Save to file
         saveMaps();
 
         return map;
     }
+
+    // Neue Methode zum Löschen von Maps
+    public boolean deleteMap(int mapId) {
+        SmashMap map = getMapById(mapId);
+        if (map == null) return false;
+
+        // Remove from memory
+        List<SmashMap> ownerMaps = playerMaps.get(map.getOwnerUUID());
+        if (ownerMaps != null) {
+            ownerMaps.removeIf(m -> m.getId() == mapId);
+            if (ownerMaps.isEmpty()) {
+                playerMaps.remove(map.getOwnerUUID());
+            }
+        }
+
+
+        // Delete world files
+        plugin.getWorldManager().deleteMapWorld(map);
+
+        // Save to file
+        saveMaps();
+
+        return true;
+    }
+
 
     public List<SmashMap> getPlayerMaps(UUID playerUUID) {
         return playerMaps.getOrDefault(playerUUID, new ArrayList<>());
@@ -148,6 +182,41 @@ public class MapManager {
         return null;
     }
 
+    public SmashMap getMapByName(String mapName) {
+        for (List<SmashMap> maps : playerMaps.values()) {
+            for (SmashMap map : maps) {
+                if (map.getName().equalsIgnoreCase(mapName)) {
+                    return map;
+                }
+            }
+        }
+        return null;
+    }
+
+    public List<SmashMap> getAllMaps() {
+        List<SmashMap> allMaps = new ArrayList<>();
+        for (List<SmashMap> maps : playerMaps.values()) {
+            allMaps.addAll(maps);
+        }
+        return allMaps;
+    }
+
+    public List<SmashMap> getApprovedMaps() {
+        return getAllMaps().stream()
+                .filter(SmashMap::isApproved)
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    public boolean approveMap(String mapName) {
+        SmashMap map = getMapByName(mapName);
+        if (map != null) {
+            map.setApproved(true);
+            saveMaps();
+            return true;
+        }
+        return false;
+    }
+
     public void updateMap(SmashMap map) {
         // Map is updated by reference, just save to file
         saveMaps();
@@ -168,6 +237,7 @@ public class MapManager {
                 mapsConfig.set(path + ".world", map.getWorldName());
                 mapsConfig.set(path + ".icon_material", map.getIconMaterial().toString());
                 mapsConfig.set(path + ".icon_display_name", map.getIconDisplayName());
+                mapsConfig.set(path + ".approved", map.isApproved());
             }
         }
 

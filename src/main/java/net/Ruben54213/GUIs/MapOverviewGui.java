@@ -3,6 +3,7 @@ package net.Ruben54213.GUIs;
 import net.Ruben54213.SmashMapsV2;
 import net.Ruben54213.Models.SmashMap;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
@@ -49,77 +50,64 @@ public class MapOverviewGui {
     }
 
     private void fillWithGlass() {
-        ItemStack glassPane = createGlassPane();
-
-        // Fill all slots with glass
-        for (int i = 0; i < inventory.getSize(); i++) {
-            inventory.setItem(i, glassPane);
-        }
-    }
-
-    private ItemStack createGlassPane() {
         ItemStack glassPane = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
         ItemMeta glassMeta = glassPane.getItemMeta();
         if (glassMeta != null) {
             glassMeta.setDisplayName(" ");
             glassPane.setItemMeta(glassMeta);
         }
-        return glassPane;
+
+        for (int i = 0; i < inventory.getSize(); i++) {
+            inventory.setItem(i, glassPane);
+        }
     }
 
     private void showNoMapsItem() {
         ItemStack noMapsItem = new ItemStack(Material.BARRIER);
-        ItemMeta noMapsMeta = noMapsItem.getItemMeta();
-        if (noMapsMeta != null) {
-            noMapsMeta.setDisplayName(org.bukkit.ChatColor.translateAlternateColorCodes('&',
-                    plugin.getConfigManager().getMessage("no_maps_title")));
-            noMapsMeta.setLore(Arrays.asList(
-                    org.bukkit.ChatColor.translateAlternateColorCodes('&',
-                            plugin.getConfigManager().getMessage("no_maps_line1")),
-                    org.bukkit.ChatColor.translateAlternateColorCodes('&',
-                            plugin.getConfigManager().getMessage("no_maps_line2"))
+        ItemMeta meta = noMapsItem.getItemMeta();
+        if (meta != null) {
+            meta.setDisplayName("§c§lKeine Karten gefunden");
+            meta.setLore(Arrays.asList(
+                    "§7Du hast noch keine Karten erstellt.",
+                    "§7Erstelle eine neue Karte mit dem",
+                    "§7§lDiamant §7in deinem Inventar!"
             ));
-            noMapsItem.setItemMeta(noMapsMeta);
+            noMapsItem.setItemMeta(meta);
         }
 
-        // Place in center of GUI (for 54 slots = 5x9, center is slot 22)
-        int centerSlot = 22;
+        // Place in center of inventory
+        int centerSlot = inventory.getSize() / 2;
         inventory.setItem(centerSlot, noMapsItem);
     }
 
     private void displayPlayerMaps(List<SmashMap> playerMaps) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
-        int slot = 10; // Start after top border (row 1) and left border
-        int mapsDisplayed = 0;
-        int maxMapsPerPage = getMaxMapsPerPage();
 
+        // Define slots to place maps in (avoiding borders)
+        int[] mapSlots;
+        if (inventory.getSize() == 45) { // 5 rows
+            mapSlots = new int[]{
+                    10, 11, 12, 13, 14, 15, 16,
+                    19, 20, 21, 22, 23, 24, 25,
+                    28, 29, 30, 31, 32, 33, 34
+            };
+        } else if (inventory.getSize() == 36) { // 4 rows
+            mapSlots = new int[]{
+                    10, 11, 12, 13, 14, 15, 16,
+                    19, 20, 21, 22, 23, 24, 25
+            };
+        } else { // Default for other sizes
+            mapSlots = new int[]{10, 11, 12, 13, 14, 15, 16};
+        }
+
+        int slotIndex = 0;
         for (SmashMap map : playerMaps) {
-            if (mapsDisplayed >= maxMapsPerPage) break;
-
-            // Skip border slots (first and last column)
-            if (slot % 9 == 0 || slot % 9 == 8) {
-                slot++;
-                if (slot % 9 == 0) slot++; // Skip to next row if we hit right border
-                continue;
-            }
-
-            // Skip bottom border row
-            if (slot >= inventory.getSize() - 9) break;
+            if (slotIndex >= mapSlots.length) break; // Don't exceed available slots
 
             ItemStack mapItem = createMapItem(map, dateFormat);
-            inventory.setItem(slot, mapItem);
-
-            slot++;
-            mapsDisplayed++;
+            inventory.setItem(mapSlots[slotIndex], mapItem);
+            slotIndex++;
         }
-    }
-
-    private int getMaxMapsPerPage() {
-        // Calculate based on GUI size, excluding borders
-        int rows = inventory.getSize() / 9;
-        int availableRows = Math.max(1, rows - 2); // Exclude top and bottom border
-        int availableColumns = 7; // Exclude left and right border
-        return availableRows * availableColumns;
     }
 
     private ItemStack createMapItem(SmashMap map, SimpleDateFormat dateFormat) {
@@ -127,29 +115,35 @@ public class MapOverviewGui {
         ItemMeta meta = item.getItemMeta();
 
         if (meta != null) {
-            // Set display name with formatting like in the image
-            String displayName = map.getIconDisplayName() != null ? map.getIconDisplayName() : map.getName();
-            meta.setDisplayName(org.bukkit.ChatColor.translateAlternateColorCodes('&',
-                    "&e" + displayName + " &8(&c✘&8) &7(#" + String.format("%04d", map.getId()) + "/0)"));
+            // Get display name with color support - no italic formatting
+            String displayName;
+            if (map.getIconDisplayName() != null && !map.getIconDisplayName().isEmpty()) {
+                displayName = ChatColor.translateAlternateColorCodes('&', map.getIconDisplayName());
+            } else {
+                displayName = ChatColor.translateAlternateColorCodes('&', map.getName());
+            }
 
-            // Create lore matching the image format
+            String ownerName = Bukkit.getOfflinePlayer(map.getOwnerUUID()).getName();
+            if (ownerName == null) ownerName = "Unknown";
+
+            // Set the display name with status indicator and ID - same format as AllMapsGui
+            meta.setDisplayName("§r" + displayName + " §8(§c✘§8) §7(#" + String.format("%04d", map.getId()) + "/0)");
+
             String formattedDate = dateFormat.format(new Date(map.getCreationTime()));
             meta.setLore(Arrays.asList(
-                    org.bukkit.ChatColor.translateAlternateColorCodes('&', "&8→ &7Typ: &aSmash"),
-                    org.bukkit.ChatColor.translateAlternateColorCodes('&', "&8→ &7Sichtbarkeit: &e?"),
-                    org.bukkit.ChatColor.translateAlternateColorCodes('&', "&8→ &7Aktualisiert: &e" + formattedDate),
+                    ChatColor.translateAlternateColorCodes('&', "&8→ &7Typ: &aSmash"),
+                    ChatColor.translateAlternateColorCodes('&', "&8→ &7Ersteller: &e" + ownerName),
+                    ChatColor.translateAlternateColorCodes('&', "&8→ &7Status: " + (map.isApproved() ? "&aApproved" : "&cNicht approved")),
+                    ChatColor.translateAlternateColorCodes('&', "&8→ &7Spiele: &e?"),
+                    ChatColor.translateAlternateColorCodes('&', "&8→ &7Aktualisiert: &e" + formattedDate),
                     "",
-                    org.bukkit.ChatColor.translateAlternateColorCodes('&', "&6Klicke zum Teleportieren!"),
-                    org.bukkit.ChatColor.translateAlternateColorCodes('&', "&eminercraft:teleport"),
-                    org.bukkit.ChatColor.translateAlternateColorCodes('&', "&7NBT: &e2 tag(s)")
+                    ChatColor.translateAlternateColorCodes('&', "&6Klicke zum Teleportieren!")
             ));
 
-            // Add map ID to persistent data for identification
             meta.getPersistentDataContainer().set(
                     new org.bukkit.NamespacedKey(plugin, "map_id"),
                     org.bukkit.persistence.PersistentDataType.INTEGER,
-                    map.getId()
-            );
+                    map.getId());
 
             item.setItemMeta(meta);
         }

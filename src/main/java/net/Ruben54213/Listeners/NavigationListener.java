@@ -53,8 +53,8 @@ public class NavigationListener implements Listener {
 
             event.setCancelled(true);
 
-            if (event.getAction().toString().contains("RIGHT_CLICK") ||
-                    event.getAction().toString().contains("LEFT_CLICK")) {
+            // Only trigger on RIGHT_CLICK
+            if (event.getAction().toString().contains("RIGHT_CLICK")) {
 
                 if (plugin.getNavigationItemManager().isExitMapItem(item)) {
                     handleExitMapClick(player);

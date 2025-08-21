@@ -63,8 +63,10 @@ public class NavigationItemManager {
             // Set lore
             meta.setLore(Arrays.asList(
                     plugin.getConfigManager().getMessage("exit_map_item_lore1"),
+                    "",
                     plugin.getConfigManager().getMessage("exit_map_item_lore2")
             ));
+
 
             // Set custom texture
             setCustomTexture(meta, EXIT_MAP_TEXTURE);
@@ -92,8 +94,10 @@ public class NavigationItemManager {
             // Set lore
             meta.setLore(Arrays.asList(
                     plugin.getConfigManager().getMessage("lobby_item_lore1"),
+                    "",
                     plugin.getConfigManager().getMessage("lobby_item_lore2")
             ));
+
 
             // Add identifier for click detection
             meta.getPersistentDataContainer().set(lobbyKey, PersistentDataType.BOOLEAN, true);

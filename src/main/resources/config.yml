@@ -7,7 +7,9 @@ prefix: "&e&lRaid&6&lMC &8» &7"
 gui:
   title: "&e&lKarte &7Erstellen"
   size: 27
-
+  all_maps:
+    title: "&6&lKarten &7Übersicht"
+    size: 54
   # Map Overview GUI (Crafting Table)
   overview:
     title: "&6&lKarten&7 von &e%player%"
@@ -15,6 +17,15 @@ gui:
 
 # Items Configuration
 items:
+  all_maps:
+    slot: 0
+    material: COMPASS
+    name: "&7Alle &c&lKarten &8&l| &7Rechtsklick"
+    lore:
+      - "&7Öffnet die Übersicht aller Maps"
+      - "&7von allen Spielern auf dem Server!"
+      - ""
+      - "&e▶ &7Rechtsklick zum Öffnen"
   # Item that players get in their inventory to open the GUI
   inventory_item:
     slot: 5 # Slot 5 (0-8 indexing) = Middle position in inventory
@@ -50,6 +61,7 @@ items:
 
 # Messages Configuration
 messages:
+  # Map creation messages
   map_created: "Deine Map &e%name% &7wurde erfolgreich erstellt!"
   map_name_request: "Wie soll deine Map heißen? Schreibe den Namen in den Chat:"
   map_icon_request: "Droppe jetzt das Item, das als Icon für deine Map verwendet werden soll!"
@@ -57,24 +69,53 @@ messages:
   map_limit_reached: "Du hast bereits das Maximum von &e%limit% &7Maps erreicht!"
   invalid_map_name: "&cUngültiger Map-Name '&e%name%&c'! Verwende nur Buchstaben, Zahlen, Leerzeichen und -_"
   map_teleported: "Du wurdest zu deiner Map &e%name% &7teleportiert!"
-  world_protected: "Du kannst diese Welt nicht bearbeiten!"
-  no_maps_found: "Du hast noch keine Maps erstellt!"
   map_not_found: "&cMap wurde nicht gefunden!"
   map_not_owner: "&cDu bist nicht der Besitzer dieser Map!"
   map_name_already_exists: "&7Der Map-Name &7'&e%name%&7' wird &cbereits &7verwendet!"
+
+  # Title messages
   map_name_title: "&aSmash Kartenname"
   map_name_subtitle: "&7Bitte Map-Namen &6eingeben"
   icon_selection_title: "&aSmash Kartenicon"
   icon_selection_subtitle: "&7Bitte Item für Icon &6droppen"
-    # No maps GUI messages
+
+  # World protection messages
+  world_protected: "Du kannst diese Welt nicht bearbeiten!"
+
+  # No maps messages
+  no_maps_found: "Du hast noch keine Maps erstellt!"
   no_maps_title: "&cKeine Maps gefunden"
   no_maps_line1: "&7Du hast noch keine Maps erstellt!"
   no_maps_line2: "&7Nutze den Diamanten um eine zu erstellen."
+
+  # Navigation messages
   exit_map_item_name: "&c&lKarte Verlassen &8&l| &7Rechtsklick"
+  exit_map_item_lore1: "&7Teleportiere dich zurück zum Spawn."
+  exit_map_item_lore2: "&e▶ &7Rechtsklick zum Interagieren"
   lobby_item_name: "&a&lZurück zur Lobby &8&l| &7Rechtsklick"
-    # Action messages
   map_exited: "&7Du hast die &eMap&7 verlassen."
   lobby_teleported: "&7Du wirst nun zur &eLobby&7 geschickt.."
+  lobby_item_lore1: "&7Du wirst bei Klick zur Lobby gesendet."
+  lobby_item_lore2: "&e▶ &7Rechtsklick zum Interagieren"
+
+  # Save Command Messages
+  not_player: "&cDieser Befehl kann nur von Spielern ausgeführt werden!"
+  not_in_map_world: "&cDu befindest dich nicht in einer Map-Welt!"
+  map_not_found_save: "&cKonnte die Map nicht finden!"
+  not_map_owner_save: "&cDu bist nicht der Besitzer dieser Map!"
+  saving_map: "&7Speichere Map '&e%name%&7' nun ab..."
+  map_saved_success: "&7Map '&e%name%&7' wurde &aerfolgreich&7 gespeichert!"
+  map_save_error: "&cFehler &7beim Speichern der Map!"
+
+  # Approve Command Messages
+  map_approved: "&7Map '&e%name%&7' wurde &aerfolgreich&7 genehmigt!"
+  map_approve_not_found: "&cMap '&e%name%&c' wurde nicht gefunden!"
+  usage_approve: "&cVerwendung: /approve <mapname>"
+
+  # Reload Command Messages
+  config_reloaded: "&7Konfiguration wurde &aneu geladen&7!"
+  no_permission: "&cDu hast keine Berechtigung für diesen Befehl!"
+
 # World Configuration
 world:
   border_size: 75 # Blocks from center in each direction
@@ -84,7 +125,8 @@ world:
 
 # Sound Configuration
 sounds:
-  teleport: "ENTITY_ENDERMAN_TELEPORT"
+  teleport: "entity_enderman_teleport"
   gui_open: "ui_button_click"
   map_created: "entity_player_levelup"
+  success: "entity_player_levelup"
   error: "entity_villager_no"

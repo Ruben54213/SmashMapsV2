@@ -1,6 +1,7 @@
 package net.Ruben54213.Listeners;
 
 import net.Ruben54213.SmashMapsV2;
+import net.Ruben54213.GUIs.AllMapsGui;
 import net.Ruben54213.GUIs.MapCreationGui;
 import net.Ruben54213.GUIs.MapOverviewGui;
 import org.bukkit.entity.Player;
@@ -25,31 +26,37 @@ public class ItemListener implements Listener {
         Player player = event.getPlayer();
         ItemStack item = event.getItem();
 
-        // Check if it's the inventory item (Diamond that opens GUI)
         if (plugin.getItemManager().isInventoryItem(item)) {
             event.setCancelled(true);
 
-            if (event.getAction().toString().contains("RIGHT_CLICK") ||
-                    event.getAction().toString().contains("LEFT_CLICK")) {
-                // Play GUI open sound
+            // Only trigger on RIGHT_CLICK
+            if (event.getAction().toString().contains("RIGHT_CLICK")) {
                 player.playSound(player.getLocation(), plugin.getConfigManager().getSound("gui_open"), 1.0f, 1.0f);
-
-                // Open map creation GUI
                 new MapCreationGui(plugin, player).open();
             }
         }
 
-        // Check if it's the map overview item (Crafting Table that opens overview)
         if (plugin.getItemManager().isMapOverviewItem(item)) {
             event.setCancelled(true);
 
-            if (event.getAction().toString().contains("RIGHT_CLICK") ||
-                    event.getAction().toString().contains("LEFT_CLICK")) {
-                // Play GUI open sound
+            // Only trigger on RIGHT_CLICK
+            if (event.getAction().toString().contains("RIGHT_CLICK")) {
+                player.playSound(player.getLocation(), plugin.getConfigManager().getSound("gui_open"), 1.0f, 1.0f);
+                new MapOverviewGui(plugin, player).open();
+            }
+        }
+
+        if (plugin.getItemManager().isAllMapsItem(item)) {
+            event.setCancelled(true);
+
+            // Only trigger on RIGHT_CLICK
+            if (event.getAction().toString().contains("RIGHT_CLICK")) {
                 player.playSound(player.getLocation(), plugin.getConfigManager().getSound("gui_open"), 1.0f, 1.0f);
 
-                // Open map overview GUI
-                new MapOverviewGui(plugin, player).open();
+                AllMapsGui gui = new AllMapsGui(plugin, player);
+                // Register the GUI with the GuiListener
+                plugin.getGuiListener().registerAllMapsGui(player, gui);
+                gui.open();
             }
         }
     }
@@ -62,20 +69,16 @@ public class ItemListener implements Listener {
 
         ItemStack item = event.getCurrentItem();
 
-        // Prevent moving the inventory item (Diamond)
-        if (plugin.getItemManager().isInventoryItem(item)) {
+        if (plugin.getItemManager().isInventoryItem(item) ||
+                plugin.getItemManager().isMapOverviewItem(item) ||
+                plugin.getItemManager().isAllMapsItem(item)) {
             event.setCancelled(true);
         }
 
-        // Prevent moving the map overview item (Crafting Table)
-        if (plugin.getItemManager().isMapOverviewItem(item)) {
-            event.setCancelled(true);
-        }
-
-        // Also check clicked item
         ItemStack cursorItem = event.getCursor();
         if (plugin.getItemManager().isInventoryItem(cursorItem) ||
-                plugin.getItemManager().isMapOverviewItem(cursorItem)) {
+                plugin.getItemManager().isMapOverviewItem(cursorItem) ||
+                plugin.getItemManager().isAllMapsItem(cursorItem)) {
             event.setCancelled(true);
         }
     }
@@ -84,7 +87,8 @@ public class ItemListener implements Listener {
     public void onInventoryDrag(InventoryDragEvent event) {
         ItemStack item = event.getOldCursor();
         if (plugin.getItemManager().isInventoryItem(item) ||
-                plugin.getItemManager().isMapOverviewItem(item)) {
+                plugin.getItemManager().isMapOverviewItem(item) ||
+                plugin.getItemManager().isAllMapsItem(item)) {
             event.setCancelled(true);
         }
     }
@@ -93,7 +97,8 @@ public class ItemListener implements Listener {
     public void onPlayerDropItem(PlayerDropItemEvent event) {
         ItemStack item = event.getItemDrop().getItemStack();
         if (plugin.getItemManager().isInventoryItem(item) ||
-                plugin.getItemManager().isMapOverviewItem(item)) {
+                plugin.getItemManager().isMapOverviewItem(item) ||
+                plugin.getItemManager().isAllMapsItem(item)) {
             event.setCancelled(true);
         }
     }

@@ -3,36 +3,43 @@ version: '${project.version}'
 main: net.Ruben54213.SmashMapsV2
 api-version: '1.21'
 authors: [ Ruben54213 ]
-description: Smash Map Creation System
+description: Advanced map system for Minecraft servers
 
 commands:
   smashmaps:
-    description: Reload SmashMapsV2 configuration
-    usage: /smashmaps reload
+    description: Reload the plugin configuration
+    usage: /<command>
     permission: smashmaps.reload
+  approve:
+    description: Approve a map for public visibility
+    usage: /<command> <mapname>
+    permission: smashmaps.approve
+  save:
+    description: Save the current map to MinIO cloud storage
+    usage: /<command>
+    permission: smashmaps.save
+  createmap:
+    description: Open the map creation GUI
+    usage: /<command>
+    aliases: [ newmap, mapcreate ]
+  maps:
+    description: Open your maps overview GUI
+    usage: /<command>
+    aliases: [ mymaps, mapoverview ]
 
 permissions:
   smashmaps.reload:
-    description: "Allows reloading the plugin configuration"
+    description: Allows reloading the plugin configuration
     default: op
-  smashmaps.maplimit.1:
-    description: "Allows player to create 1 map"
+  smashmaps.approve:
+    description: Allows approving maps
+    default: op
+  smashmaps.save:
+    description: Allows saving maps to cloud storage
     default: true
-  smashmaps.maplimit.2:
-    description: "Allows player to create 2 maps"
-    default: false
-  smashmaps.maplimit.3:
-    description: "Allows player to create 3 maps"
-    default: false
-  smashmaps.maplimit.4:
-    description: "Allows player to create 4 maps"
-    default: false
-  smashmaps.maplimit.5:
-    description: "Allows player to create 5 maps"
-    default: false
-  smashmaps.maplimit.10:
-    description: "Allows player to create 10 maps"
-    default: false
   smashmaps.maplimit.unlimited:
-    description: "Allows player to create unlimited maps"
+    description: Allows unlimited maps
+    default: op
+  smashmaps.maplimit.*:
+    description: Allows specific map limits (1-50)
     default: op

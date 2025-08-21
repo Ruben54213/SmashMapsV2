@@ -1,9 +1,9 @@
 package net.Ruben54213.Manager;
 
-import net.Ruben54213.SmashMapsV2;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.configuration.file.FileConfiguration;
+import net.Ruben54213.SmashMapsV2;
 
 public class ConfigManager {
 
@@ -106,6 +106,35 @@ public class ConfigManager {
                 .toArray(String[]::new);
     }
 
+    // All Maps Item Configuration (Compass)
+    public int getAllMapsSlot() {
+        return config.getInt("items.all_maps.slot", 0);
+    }
+
+    public String getAllMapsMaterial() {
+        return config.getString("items.all_maps.material", "COMPASS");
+    }
+
+    public String getAllMapsName() {
+        return ChatColor.translateAlternateColorCodes('&', config.getString("items.all_maps.name", "&6&lAlle Karten"));
+    }
+
+    public String[] getAllMapsLore() {
+        return config.getStringList("items.all_maps.lore")
+                .stream()
+                .map(line -> ChatColor.translateAlternateColorCodes('&', line))
+                .toArray(String[]::new);
+    }
+
+    // All Maps GUI Configuration
+    public String getAllMapsTitle() {
+        return ChatColor.translateAlternateColorCodes('&', config.getString("gui.all_maps.title", "&6Alle Karten"));
+    }
+
+    public int getAllMapsSize() {
+        return config.getInt("gui.all_maps.size", 54);
+    }
+
     public int getBorderSize() {
         return config.getInt("world.border_size", 75);
     }
@@ -121,8 +150,6 @@ public class ConfigManager {
     public Sound getSound(String soundType) {
         String soundName = config.getString("sounds." + soundType, "UI_BUTTON_CLICK");
         try {
-            // For 1.21.5, we can still use the deprecated method until 1.22
-            // Alternative: Use Registry.SOUNDS to get sounds by key
             org.bukkit.NamespacedKey key = org.bukkit.NamespacedKey.minecraft(soundName.toLowerCase());
             Sound sound = org.bukkit.Registry.SOUNDS.get(key);
             return sound != null ? sound : Sound.UI_BUTTON_CLICK;
