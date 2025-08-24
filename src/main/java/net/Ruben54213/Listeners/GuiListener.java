@@ -6,6 +6,7 @@ import net.Ruben54213.GUIs.MapCreationGui;
 import net.Ruben54213.GUIs.MapOverviewGui;
 import net.Ruben54213.Models.SmashMap;
 import net.Ruben54213.Utility.ChatInputManager;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -98,11 +99,11 @@ public class GuiListener implements Listener {
 
             player.closeInventory();
 
-            String message = plugin.getConfigManager().getPrefix() + plugin.getConfigManager().getMessage("map_name_request");
+            String message = ChatColor.translateAlternateColorCodes('&', plugin.getConfigManager().getPrefix() + plugin.getConfigManager().getMessage("map_name_request"));
             player.sendMessage(message);
 
-            String nameTitle = plugin.getConfigManager().getMessage("map_name_title");
-            String nameSubtitle = plugin.getConfigManager().getMessage("map_name_subtitle");
+            String nameTitle = ChatColor.translateAlternateColorCodes('&', plugin.getConfigManager().getMessage("map_name_title"));
+            String nameSubtitle = ChatColor.translateAlternateColorCodes('&', plugin.getConfigManager().getMessage("map_name_subtitle"));
             player.sendTitle(nameTitle, nameSubtitle, 10, 100, 20);
 
             ChatInputManager.addPlayerWaitingForInput(player.getUniqueId());
@@ -126,17 +127,17 @@ public class GuiListener implements Listener {
 
                     plugin.getWorldManager().teleportToMap(player, map);
 
-                    String teleportMessage = plugin.getConfigManager().getPrefix() +
-                            plugin.getConfigManager().getMessage("map_teleported").replace("%name%", map.getName());
+                    String teleportMessage = ChatColor.translateAlternateColorCodes('&', plugin.getConfigManager().getPrefix() +
+                            plugin.getConfigManager().getMessage("map_teleported").replace("%name%", map.getName()));
                     player.sendMessage(teleportMessage);
                 } else if (map == null) {
-                    String errorMessage = plugin.getConfigManager().getPrefix() +
-                            plugin.getConfigManager().getMessage("map_not_found");
+                    String errorMessage = ChatColor.translateAlternateColorCodes('&', ChatColor.translateAlternateColorCodes('&', plugin.getConfigManager().getPrefix() +
+                            plugin.getConfigManager().getMessage("map_not_found")));
                     player.sendMessage(errorMessage);
                     player.playSound(player.getLocation(), plugin.getConfigManager().getSound("error"), 1.0f, 1.0f);
                 } else {
-                    String errorMessage = plugin.getConfigManager().getPrefix() +
-                            plugin.getConfigManager().getMessage("map_not_owner");
+                    String errorMessage = ChatColor.translateAlternateColorCodes('&', plugin.getConfigManager().getPrefix() +
+                            plugin.getConfigManager().getMessage("map_not_owner"));
                     player.sendMessage(errorMessage);
                     player.playSound(player.getLocation(), plugin.getConfigManager().getSound("error"), 1.0f, 1.0f);
                 }
@@ -205,12 +206,12 @@ public class GuiListener implements Listener {
 
                 plugin.getWorldManager().teleportToMap(player, map);
 
-                String teleportMessage = plugin.getConfigManager().getPrefix() +
-                        plugin.getConfigManager().getMessage("map_teleported").replace("%name%", map.getName());
+                String teleportMessage = ChatColor.translateAlternateColorCodes('&', plugin.getConfigManager().getPrefix() +
+                        plugin.getConfigManager().getMessage("map_teleported").replace("%name%", map.getName()));
                 player.sendMessage(teleportMessage);
             } else {
-                String errorMessage = plugin.getConfigManager().getPrefix() +
-                        plugin.getConfigManager().getMessage("map_not_found");
+                String errorMessage = ChatColor.translateAlternateColorCodes('&', plugin.getConfigManager().getPrefix() +
+                        plugin.getConfigManager().getMessage("map_not_found"));
                 player.sendMessage(errorMessage);
                 player.playSound(player.getLocation(), plugin.getConfigManager().getSound("error"), 1.0f, 1.0f);
             }

@@ -25,6 +25,22 @@ public class PlayerChatListener implements Listener {
         Player player = event.getPlayer();
         String message = event.getMessage().trim();
 
+        // Check for delete confirm command
+        if (message.equalsIgnoreCase("/delete confirm")) {
+            event.setCancelled(true);
+
+            // Process on main thread
+            plugin.getServer().getScheduler().runTask(plugin, () -> {
+                // Get the delete command and handle confirmation
+                if (plugin.getCommand("delete").getExecutor() instanceof net.Ruben54213.Commands.DeleteCommand) {
+                    net.Ruben54213.Commands.DeleteCommand deleteCommand = 
+                        (net.Ruben54213.Commands.DeleteCommand) plugin.getCommand("delete").getExecutor();
+                    deleteCommand.handleConfirmation(player, message);
+                }
+            });
+            return;
+        }
+
         // Check if player is waiting for map name input
         if (ChatInputManager.isPlayerWaitingForInput(player.getUniqueId())) {
             event.setCancelled(true);
@@ -45,12 +61,12 @@ public class PlayerChatListener implements Listener {
                     player.playSound(player.getLocation(), plugin.getConfigManager().getSound("error"), 1.0f, 1.0f);
 
                     // Ask again
-                    String requestMessage = plugin.getConfigManager().getPrefix() +
-                            plugin.getConfigManager().getMessage("map_name_request");
+                    String requestMessage = ChatColor.translateAlternateColorCodes('&', plugin.getConfigManager().getPrefix() +
+                            plugin.getConfigManager().getMessage("map_name_request"));
                     player.sendMessage(requestMessage);
 
-                    String nameTitle = plugin.getConfigManager().getMessage("map_name_title");
-                    String nameSubtitle = plugin.getConfigManager().getMessage("map_name_subtitle");
+                    String nameTitle = ChatColor.translateAlternateColorCodes('&', plugin.getConfigManager().getMessage("map_name_title"));
+                    String nameSubtitle = ChatColor.translateAlternateColorCodes('&', plugin.getConfigManager().getMessage("map_name_subtitle"));
                     player.sendTitle(nameTitle, nameSubtitle, 10, 100, 20);
 
                     ChatInputManager.addPlayerWaitingForInput(player.getUniqueId());
@@ -72,8 +88,8 @@ public class PlayerChatListener implements Listener {
                             plugin.getConfigManager().getMessage("map_name_request");
                     player.sendMessage(requestMessage);
 
-                    String nameTitle = plugin.getConfigManager().getMessage("map_name_title");
-                    String nameSubtitle = plugin.getConfigManager().getMessage("map_name_subtitle");
+                    String nameTitle = ChatColor.translateAlternateColorCodes('&', plugin.getConfigManager().getMessage("map_name_title"));
+                    String nameSubtitle = ChatColor.translateAlternateColorCodes('&', plugin.getConfigManager().getMessage("map_name_subtitle"));
                     player.sendTitle(nameTitle, nameSubtitle, 10, 100, 20);
 
                     ChatInputManager.addPlayerWaitingForInput(player.getUniqueId());
@@ -97,16 +113,16 @@ public class PlayerChatListener implements Listener {
                             plugin.getConfigManager().getMessage("map_icon_request");
                     player.sendMessage(iconMessage);
 
-                    String iconTitle = plugin.getConfigManager().getMessage("icon_selection_title");
-                    String iconSubtitle = plugin.getConfigManager().getMessage("icon_selection_subtitle");
+                    String iconTitle = ChatColor.translateAlternateColorCodes('&', plugin.getConfigManager().getMessage("icon_selection_title"));
+                    String iconSubtitle = ChatColor.translateAlternateColorCodes('&', plugin.getConfigManager().getMessage("icon_selection_subtitle"));
                     player.sendTitle(iconTitle, iconSubtitle, 10, 100, 20);
 
                     // Set player to creative mode
                     player.setGameMode(org.bukkit.GameMode.CREATIVE);
                     player.playSound(player.getLocation(), plugin.getConfigManager().getSound("success"), 1.0f, 1.0f);
                 } else {
-                    String errorMessage = plugin.getConfigManager().getPrefix() +
-                            plugin.getConfigManager().getMessage("map_creation_failed");
+                    String errorMessage = ChatColor.translateAlternateColorCodes('&', plugin.getConfigManager().getPrefix() +
+                            plugin.getConfigManager().getMessage("map_creation_failed"));
                     player.sendMessage(errorMessage);
                     player.playSound(player.getLocation(), plugin.getConfigManager().getSound("error"), 1.0f, 1.0f);
                 }

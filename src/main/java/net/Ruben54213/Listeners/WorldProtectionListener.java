@@ -67,24 +67,71 @@ public class WorldProtectionListener implements Listener {
         }
     }
 
+    // Additional protection events for comprehensive coverage
+    @EventHandler
+    public void onPlayerBucketEmpty(org.bukkit.event.player.PlayerBucketEmptyEvent event) {
+        Player player = event.getPlayer();
+        if (!canModifyWorld(player)) {
+            event.setCancelled(true);
+            sendProtectionMessage(player);
+        }
+    }
+
+    @EventHandler
+    public void onPlayerBucketFill(org.bukkit.event.player.PlayerBucketFillEvent event) {
+        Player player = event.getPlayer();
+        if (!canModifyWorld(player)) {
+            event.setCancelled(true);
+            sendProtectionMessage(player);
+        }
+    }
+
+    @EventHandler
+    public void onHangingBreak(org.bukkit.event.hanging.HangingBreakByEntityEvent event) {
+        if (event.getRemover() instanceof Player) {
+            Player player = (Player) event.getRemover();
+            if (!canModifyWorld(player)) {
+                event.setCancelled(true);
+                sendProtectionMessage(player);
+            }
+        }
+    }
+
+    @EventHandler
+    public void onHangingPlace(org.bukkit.event.hanging.HangingPlaceEvent event) {
+        Player player = event.getPlayer();
+        if (player != null && !canModifyWorld(player)) {
+            event.setCancelled(true);
+            sendProtectionMessage(player);
+        }
+    }
+
     private boolean canModifyWorld(Player player) {
+        // Check if it's a map world first
+        if (!plugin.getWorldManager().isMapWorld(player.getWorld())) {
+            return true; // Not a map world, allow everything
+        }
+
         // Allow if player is OP
         if (player.isOp()) {
             return true;
         }
 
-        // Allow if player is in creative mode
-        if (player.getGameMode() == GameMode.CREATIVE) {
+        // Allow if player has admin permission
+        if (player.hasPermission("smashmaps.admin") || 
+            player.hasPermission("smashmaps.build.admin")) {
             return true;
         }
 
-        // Check if it's a map world
-        if (!plugin.getWorldManager().isMapWorld(player.getWorld())) {
-            return true; // Not a map world, allow everything
+        // Get the world name for map checking
+        String worldName = player.getWorld().getName();
+        // Remove "maps/" prefix if present for consistency
+        if (worldName.startsWith("maps/")) {
+            worldName = worldName.replace("maps/", "");
         }
 
         // Check if player owns this map
-        return plugin.getMapManager().isMapOwner(player.getUniqueId(), player.getWorld().getName());
+        return plugin.getMapManager().isMapOwner(player.getUniqueId(), worldName);
     }
 
     private void sendProtectionMessage(Player player) {

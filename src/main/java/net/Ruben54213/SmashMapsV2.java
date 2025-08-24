@@ -1,24 +1,15 @@
 package net.Ruben54213;
 
+import net.Ruben54213.Commands.*;
+import net.Ruben54213.Listeners.*;
 import net.Ruben54213.Manager.ConfigManager;
 import net.Ruben54213.Manager.NavigationItemManager;
+import net.Ruben54213.Manager.PositionDisplayManager;
 import net.Ruben54213.Manager.ScoreboardManager;
 import net.Ruben54213.Manager.MinIOManager;
-import net.Ruben54213.Listeners.GuiListener;
-import net.Ruben54213.Listeners.ItemListener;
-import net.Ruben54213.Listeners.NavigationListener;
-import net.Ruben54213.Listeners.PlayerChatListener;
-import net.Ruben54213.Listeners.WorldProtectionListener;
-import net.Ruben54213.Listeners.IconDropListener;
-import net.Ruben54213.Listeners.ScoreboardListener;
 import net.Ruben54213.Manager.ItemManager;
 import net.Ruben54213.Manager.MapManager;
 import net.Ruben54213.Manager.WorldManager;
-import net.Ruben54213.Commands.ReloadCommand;
-import net.Ruben54213.Commands.ApproveCommand;
-import net.Ruben54213.Commands.SaveCommand;
-import net.Ruben54213.Commands.CreateMapCommand;
-import net.Ruben54213.Commands.MapsCommand;
 import net.Ruben54213.Tasks.TitleReminderTask;
 import net.Ruben54213.Tasks.ScoreboardUpdateTask;
 import org.bukkit.Bukkit;
@@ -38,6 +29,7 @@ public final class SmashMapsV2 extends JavaPlugin {
     private MinIOManager minIOManager;
     private TitleReminderTask titleReminderTask;
     private ScoreboardUpdateTask scoreboardUpdateTask;
+    private PositionDisplayManager positionDisplayManager;
 
     @Override
     public void onEnable() {
@@ -51,6 +43,7 @@ public final class SmashMapsV2 extends JavaPlugin {
         this.navigationItemManager = new NavigationItemManager(this);
         this.scoreboardManager = new ScoreboardManager(this);
         this.minIOManager = new MinIOManager(this);
+        this.positionDisplayManager = new PositionDisplayManager(this);
 
         // Register BungeeCord plugin messaging channel
         this.getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
@@ -105,19 +98,31 @@ public final class SmashMapsV2 extends JavaPlugin {
         this.guiListener = new GuiListener(this);
         getServer().getPluginManager().registerEvents(this.guiListener, this);
         getServer().getPluginManager().registerEvents(new PlayerChatListener(this), this);
+        getServer().getPluginManager().registerEvents(new FlowStopper(), this);
+        getServer().getPluginManager().registerEvents(new TNTProtectionListener(), this);
         getServer().getPluginManager().registerEvents(new WorldProtectionListener(this), this);
         getServer().getPluginManager().registerEvents(new IconDropListener(this), this);
         getServer().getPluginManager().registerEvents(new NavigationListener(this), this);
         getServer().getPluginManager().registerEvents(new ScoreboardListener(this), this);
+        getServer().getPluginManager().registerEvents(new MapSettingsListener(this), this);
+        getServer().getPluginManager().registerEvents(new MapWorldListener(this), this);
+        getServer().getPluginManager().registerEvents(new PositionHotbarListener(this), this);
+        getServer().getPluginManager().registerEvents(new WeatherDisabler(this), this);
+
         getServer().getPluginManager().registerEvents(itemManager, this);
     }
 
     private void registerCommands() {
+        getCommand("info").setExecutor(new InfoCommand(this));
+        getCommand("rename").setExecutor(new RenameCommand(this));
+        getCommand("delete").setExecutor(new DeleteCommand(this));
         getCommand("smashmaps").setExecutor(new ReloadCommand(this));
         getCommand("approve").setExecutor(new ApproveCommand(this));
         getCommand("save").setExecutor(new SaveCommand(this));
         getCommand("createmap").setExecutor(new CreateMapCommand(this));
         getCommand("maps").setExecutor(new MapsCommand(this));
+        getCommand("rename").setExecutor(new RenameCommand(this));
+        getCommand("confirm").setExecutor(new ConfirmCommand(this));
     }
 
     private void startTitleReminderTask() {
@@ -165,5 +170,9 @@ public final class SmashMapsV2 extends JavaPlugin {
 
     public MinIOManager getMinIOManager() {
         return minIOManager;
+    }
+
+    public PositionDisplayManager getPositionDisplayManager() {
+        return positionDisplayManager;
     }
 }

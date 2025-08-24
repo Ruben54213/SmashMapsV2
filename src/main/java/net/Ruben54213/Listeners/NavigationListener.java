@@ -1,6 +1,7 @@
 package net.Ruben54213.Listeners;
 
 import net.Ruben54213.SmashMapsV2;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -29,8 +30,8 @@ public class NavigationListener implements Listener {
         player.performCommand("spawn");
 
         // Send message
-        String message = plugin.getConfigManager().getPrefix() +
-                plugin.getConfigManager().getMessage("map_exited");
+        String message = ChatColor.translateAlternateColorCodes('&', plugin.getConfigManager().getPrefix() +
+                plugin.getConfigManager().getMessage("map_exited"));
         player.sendMessage(message);
 
         // Play sound

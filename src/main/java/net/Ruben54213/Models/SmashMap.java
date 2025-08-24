@@ -8,7 +8,7 @@ import java.util.UUID;
 public class SmashMap {
     private final int id;
     private final UUID ownerUUID;
-    private final String name;
+    private String name;
     private final String worldName;
     private final long creationTime;
 
@@ -63,6 +63,7 @@ public class SmashMap {
     public boolean isApproved() { return approved; }
 
     // Setters
+    public void setName(String name) { this.name = name; }
     public void setIconMaterial(Material iconMaterial) { this.iconMaterial = iconMaterial; }
     public void setIconDisplayName(String iconDisplayName) { this.iconDisplayName = iconDisplayName; }
     public void setApproved(boolean approved) { this.approved = approved; }

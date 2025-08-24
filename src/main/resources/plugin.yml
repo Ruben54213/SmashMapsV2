@@ -1,33 +1,61 @@
 name: SmashMapsV2
-version: '${project.version}'
+version: 1.0
 main: net.Ruben54213.SmashMapsV2
-api-version: '1.21'
-authors: [ Ruben54213 ]
-description: Advanced map system for Minecraft servers
+api-version: 1.21
+depend: []
+softdepend: []
 
 commands:
+  info:
+    description: Zeigt Informationen über eine Map an
+    usage: /info [ID oder Name]
+    permission: smashmaps.info
+  delete:
+    description: Löscht eine Map
+    usage: /delete [ID oder Name]
   smashmaps:
-    description: Reload the plugin configuration
-    usage: /<command>
-    permission: smashmaps.reload
+    description: Lädt das Plugin neu
+    usage: /smashmaps reload
   approve:
-    description: Approve a map for public visibility
-    usage: /<command> <mapname>
-    permission: smashmaps.approve
+    description: Genehmigt eine Map
+    usage: /approve <ID oder Name>
   save:
-    description: Save the current map to MinIO cloud storage
-    usage: /<command>
-    permission: smashmaps.save
+    description: Speichert Maps
+    usage: /save
   createmap:
-    description: Open the map creation GUI
-    usage: /<command>
-    aliases: [ newmap, mapcreate ]
+    description: Erstellt eine neue Map
+    usage: /createmap <Name>
   maps:
-    description: Open your maps overview GUI
-    usage: /<command>
-    aliases: [ mymaps, mapoverview ]
+    description: Zeigt alle Maps an
+    usage: /maps
+  rename:
+    description: Benennt eine Map um
+    usage: /rename <neuer Name>
+  confirm:
+    description: Bestätigt eine ausstehende Aktion
+    usage: /confirm
 
 permissions:
+  smashmaps.admin:
+    description: Vollständige Admin-Berechtigung für alle SmashMaps Funktionen
+    default: op
+    children:
+      smashmaps.build.admin: true
+      smashmaps.delete.admin: true
+      smashmaps.rename.admin: true
+      smashmaps.maplimit.unlimited: true
+  smashmaps.build.admin:
+    description: Erlaubt das Bauen auf allen Maps
+    default: op
+  smashmaps.rename.admin:
+    description: Erlaubt das Umbenennen aller Maps
+    default: op
+  smashmaps.delete.admin:
+    description: Erlaubt das Löschen aller Maps
+    default: op
+  smashmaps.maplimit.unlimited:
+    description: Unbegrenzte Maps
+    default: op
   smashmaps.reload:
     description: Allows reloading the plugin configuration
     default: op
@@ -37,9 +65,10 @@ permissions:
   smashmaps.save:
     description: Allows saving maps to cloud storage
     default: true
-  smashmaps.maplimit.unlimited:
-    description: Allows unlimited maps
-    default: op
   smashmaps.maplimit.*:
     description: Allows specific map limits (1-50)
+    default: op
+  smashmaps.delete:
+    default: op
+  smashmaps.info:
     default: op

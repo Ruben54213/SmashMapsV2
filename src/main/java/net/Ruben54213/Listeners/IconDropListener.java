@@ -3,6 +3,7 @@ package net.Ruben54213.Listeners;
 import net.Ruben54213.SmashMapsV2;
 import net.Ruben54213.Models.SmashMap;
 import net.Ruben54213.Manager.IconSelectionManager;
+import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -60,10 +61,10 @@ public class IconDropListener implements Listener {
                 String itemName = meta != null && meta.hasDisplayName() ?
                         meta.getDisplayName() : droppedItem.getType().toString();
 
-                String message = plugin.getConfigManager().getPrefix() +
+                String message = ChatColor.translateAlternateColorCodes('&', plugin.getConfigManager().getPrefix() +
                         plugin.getConfigManager().getMessage("map_icon_selected")
                                 .replace("%item%", itemName)
-                                .replace("%name%", map.getName());
+                                .replace("%name%", map.getName()));
                 player.sendMessage(message);
 
                 // Play success sound
@@ -73,8 +74,8 @@ public class IconDropListener implements Listener {
                 plugin.getWorldManager().teleportToMap(player, map);
 
                 // Send teleported message
-                String teleportMessage = plugin.getConfigManager().getPrefix() +
-                        plugin.getConfigManager().getMessage("map_teleported").replace("%name%", map.getName());
+                String teleportMessage = ChatColor.translateAlternateColorCodes('&', plugin.getConfigManager().getPrefix() +
+                        plugin.getConfigManager().getMessage("map_teleported").replace("%name%", map.getName()));
                 player.sendMessage(teleportMessage);
             }
         }

@@ -150,7 +150,7 @@ public class MinIOManager {
         }
     }
 
-    private void uploadMapsYmlToMinIO() throws Exception {
+    public void uploadMapsYmlToMinIO() throws Exception {
         File mapsYmlFile = new File(plugin.getDataFolder(), "maps.yml");
         if (!mapsYmlFile.exists()) {
             plugin.getLogger().warning("maps.yml file does not exist!");

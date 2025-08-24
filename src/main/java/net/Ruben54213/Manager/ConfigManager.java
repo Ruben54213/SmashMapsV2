@@ -147,6 +147,37 @@ public class ConfigManager {
         return config.getInt("world.spawn_platform.size", 3);
     }
 
+    // New: Map-Hotbar items (configurable)
+    public int getMapInfoSlot() { return config.getInt("items.map.map_info.slot", 2); }
+    public String getMapInfoMaterial() { return config.getString("items.map.map_info.material", "BOOK"); }
+    public String getMapInfoName() { return ChatColor.translateAlternateColorCodes('&', config.getString("items.map.map_info.name", "&e&lKarteninfo &8&l| &7Rechtsklick")); }
+
+    public int getPositionsViewSlot() { return config.getInt("items.map.positions_view.slot", 4); }
+    public String getPositionsViewMaterial() { return config.getString("items.map.positions_view.material", "ENDER_EYE"); }
+    public String getPositionsViewName() { return ChatColor.translateAlternateColorCodes('&', config.getString("items.map.positions_view.name", "&5&lPositionen Anzeigen &8&l| &7Rechtsklick")); }
+
+    public int getEditModeSlot() { return config.getInt("items.map.edit_mode.slot", 6); }
+    public String getEditModeMaterial() { return config.getString("items.map.edit_mode.material", "CRAFTING_TABLE"); }
+    public String getEditModeName() { return ChatColor.translateAlternateColorCodes('&', config.getString("items.map.edit_mode.name", "&9&lBearbeitungsmodus &8&l| &7Rechtsklick")); }
+
+    public int getPositionsSetSlot() { return config.getInt("items.map.positions_set.slot", 7); }
+    public String getPositionsSetMaterial() { return config.getString("items.map.positions_set.material", "OAK_SIGN"); }
+    public String getPositionsSetName() { return ChatColor.translateAlternateColorCodes('&', config.getString("items.map.positions_set.name", "&9&lPositionen Setzen &8&l| &7Rechtsklick")); }
+
+    public int getMapSettingsSlot() { return config.getInt("items.map.map_settings.slot", 8); }
+    public String getMapSettingsMaterial() { return config.getString("items.map.map_settings.material", "COMMAND_BLOCK"); }
+    public String getMapSettingsName() { return ChatColor.translateAlternateColorCodes('&', config.getString("items.map.map_settings.name", "&e&lKarteneinstellungen &8&l| &7Rechtsklick")); }
+
+    // Edit mode items
+    public String getWorldEditAxeMaterial() { return config.getString("items.map.edit_mode_items.axe_material", "WOODEN_AXE"); }
+    public String getWorldEditAxeName() { return ChatColor.translateAlternateColorCodes('&', config.getString("items.map.edit_mode_items.axe_name", "&dWorldedit")); }
+    public String getEditModeExitMaterial() { return config.getString("items.map.edit_mode_items.exit_material", "BARRIER"); }
+    public String getEditModeExitName() { return ChatColor.translateAlternateColorCodes('&', config.getString("items.map.edit_mode_items.exit_name", "&c&lBearbeitungsmodus beenden &8&l| &7Rechtsklick")); }
+
+    // GUI titles
+    public String getMapInfoGuiTitle() { return ChatColor.translateAlternateColorCodes('&', config.getString("gui.map_info.title", "&8Karteninformationen")); }
+    public String getMapSettingsGuiTitle() { return ChatColor.translateAlternateColorCodes('&', config.getString("gui.map_settings.title", "&8Karteneinstellungen")); }
+
     public Sound getSound(String soundType) {
         String soundName = config.getString("sounds." + soundType, "UI_BUTTON_CLICK");
         try {

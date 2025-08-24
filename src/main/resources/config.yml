@@ -68,7 +68,7 @@ messages:
   map_icon_selected: "Das Item &e%item% &7wurde als Icon für deine Map &e%name% &7ausgewählt!"
   map_limit_reached: "Du hast bereits das Maximum von &e%limit% &7Maps erreicht!"
   invalid_map_name: "&cUngültiger Map-Name '&e%name%&c'! Verwende nur Buchstaben, Zahlen, Leerzeichen und -_"
-  map_teleported: "Du wurdest zu deiner Map &e%name% &7teleportiert!"
+  map_teleported: "Du wurdest zu der Map &e%name% &7teleportiert!"
   map_not_found: "&cMap wurde nicht gefunden!"
   map_not_owner: "&cDu bist nicht der Besitzer dieser Map!"
   map_name_already_exists: "&7Der Map-Name &7'&e%name%&7' wird &cbereits &7verwendet!"

@@ -30,8 +30,8 @@ public class SaveCommand implements CommandExecutor {
 
         // Prüfen ob Spieler in einer Map-Welt ist
         if (!plugin.getWorldManager().isMapWorld(currentWorld)) {
-            String message = plugin.getConfigManager().getPrefix() +
-                    plugin.getConfigManager().getMessage("not_in_map_world");
+            String message = ChatColor.translateAlternateColorCodes('&', plugin.getConfigManager().getPrefix() +
+                    plugin.getConfigManager().getMessage("not_in_map_world"));
             player.sendMessage(message);
             return true;
         }
@@ -41,23 +41,23 @@ public class SaveCommand implements CommandExecutor {
         SmashMap map = plugin.getMapManager().getMapByWorld(worldName);
 
         if (map == null) {
-            String message = plugin.getConfigManager().getPrefix() +
-                    plugin.getConfigManager().getMessage("map_not_found_save");
+            String message = ChatColor.translateAlternateColorCodes('&', plugin.getConfigManager().getPrefix() +
+                    plugin.getConfigManager().getMessage("map_not_found_save"));
             player.sendMessage(message);
             return true;
         }
 
         // Prüfen ob Spieler der Besitzer der Map ist
         if (!map.getOwnerUUID().equals(player.getUniqueId())) {
-            String message = plugin.getConfigManager().getPrefix() +
-                    plugin.getConfigManager().getMessage("not_map_owner_save");
+            String message = ChatColor.translateAlternateColorCodes('&', plugin.getConfigManager().getPrefix() +
+                    plugin.getConfigManager().getMessage("not_map_owner_save"));
             player.sendMessage(message);
             return true;
         }
 
         // Speichern in MinIO starten (asynchron)
-        String loadingMessage = plugin.getConfigManager().getPrefix() +
-                plugin.getConfigManager().getMessage("saving_map").replace("%name%", map.getName());
+        String loadingMessage = ChatColor.translateAlternateColorCodes('&', plugin.getConfigManager().getPrefix() +
+                plugin.getConfigManager().getMessage("saving_map").replace("%name%", map.getName()));
         player.sendMessage(loadingMessage);
 
         // Asynchron ausführen um Server-Lag zu vermeiden
@@ -68,8 +68,8 @@ public class SaveCommand implements CommandExecutor {
             plugin.getServer().getScheduler().runTask(plugin, () -> {
                 if (success) {
                     // Erfolgsnachricht
-                    String successMessage = plugin.getConfigManager().getPrefix() +
-                            plugin.getConfigManager().getMessage("map_saved_success").replace("%name%", map.getName());
+                    String successMessage = ChatColor.translateAlternateColorCodes('&', plugin.getConfigManager().getPrefix() +
+                            plugin.getConfigManager().getMessage("map_saved_success").replace("%name%", map.getName()));
                     player.sendMessage(successMessage);
 
                     // Cooler Sound für Erfolg
@@ -83,8 +83,8 @@ public class SaveCommand implements CommandExecutor {
 
                 } else {
                     // Fehlernachricht
-                    String errorMessage = plugin.getConfigManager().getPrefix() +
-                            plugin.getConfigManager().getMessage("map_save_error");
+                    String errorMessage = ChatColor.translateAlternateColorCodes('&', plugin.getConfigManager().getPrefix() +
+                            plugin.getConfigManager().getMessage("map_save_error"));
                     player.sendMessage(errorMessage);
 
                     // Error Sound
