@@ -71,18 +71,22 @@ public class PositionDisplayManager {
             spawned.add(holo);
         }
 
-        // Spielerspawns: nur Hologram
+        // Spielerspawns: Marker (Steve-Kopf) + Hologramm
         for (Location loc : plugin.getMapManager().getPlayerSpawns(worldName)) {
-            Location base = ensureWorld(centerOfBlock(loc), player.getWorld());
+            Location base = ensureWorld(centerOfBlock(loc).add(0, 0.05, 0), player.getWorld());
+            ArmorStand marker = spawnMarker(base, new ItemStack(Material.PLAYER_HEAD));
             ArmorStand holo = spawnHologram(base.clone().add(0, 1.25, 0), ChatColor.AQUA + "" + ChatColor.BOLD + "Spawn");
+            spawned.add(marker);
             spawned.add(holo);
         }
 
-        // Center
+        // Center: Marker (Beacon) + Hologramm
         Location center = plugin.getMapManager().getCenter(worldName);
         if (center != null) {
-            Location base = ensureWorld(centerOfBlock(center), player.getWorld());
+            Location base = ensureWorld(centerOfBlock(center).add(0, 0.05, 0), player.getWorld());
+            ArmorStand marker = spawnMarker(base, new ItemStack(Material.BEACON));
             ArmorStand holo = spawnHologram(base.clone().add(0, 1.25, 0), ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "Center");
+            spawned.add(marker);
             spawned.add(holo);
         }
 
