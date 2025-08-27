@@ -47,6 +47,14 @@ public class SaveCommand implements CommandExecutor {
             return true;
         }
 
+        // Wenn die Map bereits approved ist, kann sie nicht mehr gespeichert werden
+        if (map.isApproved()) {
+            String message = ChatColor.translateAlternateColorCodes('&', plugin.getConfigManager().getPrefix() +
+                    "§cDiese Map ist bereits approved und kann nicht mehr gespeichert werden.");
+            player.sendMessage(message);
+            return true;
+        }
+
         // Prüfen ob Spieler der Besitzer der Map ist
         if (!map.getOwnerUUID().equals(player.getUniqueId())) {
             String message = ChatColor.translateAlternateColorCodes('&', plugin.getConfigManager().getPrefix() +

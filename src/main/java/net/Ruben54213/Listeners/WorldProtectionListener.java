@@ -112,6 +112,16 @@ public class WorldProtectionListener implements Listener {
             return true; // Not a map world, allow everything
         }
 
+        // If the current map is approved, disallow any modification for everyone
+        String worldNameCheck = player.getWorld().getName();
+        if (worldNameCheck.startsWith("maps/")) {
+            worldNameCheck = worldNameCheck.replace("maps/", "");
+        }
+        net.Ruben54213.Models.SmashMap approvedMapCheck = plugin.getMapManager().getMapByWorld(worldNameCheck);
+        if (approvedMapCheck != null && approvedMapCheck.isApproved()) {
+            return false;
+        }
+
         // Allow if player is OP
         if (player.isOp()) {
             return true;

@@ -6,6 +6,9 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerKickEvent;
+import org.bukkit.event.world.WorldLoadEvent;
+import org.bukkit.event.world.ChunkLoadEvent;
 
 public class MapWorldListener implements Listener {
 
@@ -37,5 +40,33 @@ public class MapWorldListener implements Listener {
     public void onQuit(PlayerQuitEvent e) {
         plugin.getPositionDisplayManager().resetPlayer(e.getPlayer());
         plugin.getItemManager().clearAllInventory(e.getPlayer());
+    }
+
+    @EventHandler
+    public void onKick(PlayerKickEvent e) {
+        plugin.getPositionDisplayManager().resetPlayer(e.getPlayer());
+        plugin.getItemManager().clearAllInventory(e.getPlayer());
+    }
+
+    @EventHandler
+    public void onWorldLoad(WorldLoadEvent e) {
+        try {
+            if (plugin.getWorldManager().isMapWorld(e.getWorld())) {
+                plugin.getPositionDisplayManager().cleanupWorld(e.getWorld());
+            }
+        } catch (Exception ignored) {
+            plugin.getPositionDisplayManager().cleanupWorld(e.getWorld());
+        }
+    }
+
+    @EventHandler
+    public void onChunkLoad(ChunkLoadEvent e) {
+        try {
+            if (plugin.getWorldManager().isMapWorld(e.getWorld())) {
+                plugin.getPositionDisplayManager().cleanupChunk(e.getChunk());
+            }
+        } catch (Exception ignored) {
+            plugin.getPositionDisplayManager().cleanupChunk(e.getChunk());
+        }
     }
 }

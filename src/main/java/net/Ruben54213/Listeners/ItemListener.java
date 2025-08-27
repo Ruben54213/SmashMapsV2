@@ -14,6 +14,7 @@ import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 
@@ -92,9 +93,13 @@ public class ItemListener implements Listener {
         if (plugin.getItemManager().isEditModeToggle(item)) {
             event.setCancelled(true);
             if (event.getAction().toString().contains("RIGHT_CLICK")) {
-                // Inhaber prüfen
+                // Inhaber & Approved prüfen
                 String worldName = player.getWorld().getName().replace("maps/", "");
                 net.Ruben54213.Models.SmashMap map = plugin.getMapManager().getMapByWorld(worldName);
+                if (map != null && map.isApproved()) {
+                    player.sendMessage(plugin.getConfigManager().getPrefix() + org.bukkit.ChatColor.RED + "Diese Map ist bereits approved. Der Bearbeitungsmodus ist deaktiviert.");
+                    return;
+                }
                 if (map != null && map.getOwnerUUID() != null && map.getOwnerUUID().equals(player.getUniqueId())) {
                     plugin.getItemManager().giveEditModeItems(player);
                 } else {
@@ -219,6 +224,13 @@ public class ItemListener implements Listener {
 
     @EventHandler
     public void onPlayerDropItem(PlayerDropItemEvent event) {
+        // In Map-Welten dürfen außerhalb des Bearbeitungsmodus keine Items gedroppt werden
+        if (plugin.getWorldManager().isMapWorld(event.getPlayer().getWorld()) &&
+                !plugin.getItemManager().isInEditMode(event.getPlayer())) {
+            event.setCancelled(true);
+            return;
+        }
+
         ItemStack item = event.getItemDrop().getItemStack();
         if (plugin.getItemManager().isInventoryItem(item) ||
                 plugin.getItemManager().isMapOverviewItem(item) ||
@@ -230,6 +242,17 @@ public class ItemListener implements Listener {
                 plugin.getItemManager().isMapSettingsItem(item) ||
                 plugin.getItemManager().isEditModeAxe(item) ||
                 plugin.getItemManager().isEditModeExit(item)) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void onEntityPickupItem(EntityPickupItemEvent event) {
+        if (!(event.getEntity() instanceof org.bukkit.entity.Player)) return;
+        org.bukkit.entity.Player player = (org.bukkit.entity.Player) event.getEntity();
+        // In Map-Welten dürfen außerhalb des Bearbeitungsmodus keine Items aufgehoben werden
+        if (plugin.getWorldManager().isMapWorld(player.getWorld()) &&
+                !plugin.getItemManager().isInEditMode(player)) {
             event.setCancelled(true);
         }
     }

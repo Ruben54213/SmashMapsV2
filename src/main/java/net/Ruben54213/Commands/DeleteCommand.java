@@ -52,9 +52,15 @@ public class DeleteCommand implements CommandExecutor {
                 return true;
             }
 
-            // Prüfen ob Spieler der Besitzer ist oder Admin
-            if (!map.getOwnerUUID().equals(player.getUniqueId()) && !isAdmin) {
+            // Prüfen ob Spieler der Besitzer ist
+            if (!map.getOwnerUUID().equals(player.getUniqueId())) {
                 player.sendMessage(plugin.getConfigManager().getPrefix() + ChatColor.translateAlternateColorCodes('&',"&7Du kannst nur deine &eeigenen&7 Maps löschen!"));
+                return true;
+            }
+
+            // Approved maps dürfen nicht gelöscht werden
+            if (map.isApproved()) {
+                player.sendMessage(plugin.getConfigManager().getPrefix() + ChatColor.translateAlternateColorCodes('&', "&7Diese Map ist &aapproved&7 und kann &cnicht &7gelöscht werden!"));
                 return true;
             }
 
@@ -62,45 +68,23 @@ public class DeleteCommand implements CommandExecutor {
             deleteMapWithConfirmation(player, map);
 
         } else if (args.length == 1) {
-            // Nur Admin kann Maps mit ID oder Name löschen
-            if (!isAdmin) {
-                player.sendMessage(plugin.getConfigManager().getPrefix() + ChatColor.translateAlternateColorCodes('&', "Du hast &ckeine&7 Berechtigung, Maps mit &eID&7/&eName&7 zu löschen!"));
-                player.sendMessage(plugin.getConfigManager().getPrefix() + ChatColor.translateAlternateColorCodes('&',"&7Verwendung: &e/delete&7 auf deiner &eMap&7."));
-                return true;
-            }
-
-            String identifier = args[0];
-            SmashMap map = null;
-
-            // Versuche zuerst als ID zu parsen
-            try {
-                int mapId = Integer.parseInt(identifier);
-                map = plugin.getMapManager().getMapById(mapId);
-            } catch (NumberFormatException e) {
-                // Wenn nicht als ID parsbar, als Name suchen
-                map = plugin.getMapManager().getMapByName(identifier);
-            }
-
-            if (map == null) {
-                player.sendMessage(plugin.getConfigManager().getPrefix() + ChatColor.translateAlternateColorCodes('&',"&7Die &eMap &7mit ID/Name '&e" + identifier + "&7' wurde &cnicht&7 gefunden!"));
-                return true;
-            }
-
-            // Map löschen
-            deleteMapWithConfirmation(player, map);
+            // Löschen nur auf der eigenen Map ohne Argumente erlaubt
+            player.sendMessage(plugin.getConfigManager().getPrefix() + ChatColor.translateAlternateColorCodes('&', "&7Verwendung: &e/delete&7 auf deiner &eMap&7 (ohne Argumente)."));
+            return true;
 
         } else {
-            if (isAdmin) {
-                player.sendMessage(plugin.getConfigManager().getPrefix() + ChatColor.translateAlternateColorCodes('&',"&7Verwendung: &e/delete &7[&eID oder Name&7]"));
-            } else {
-                player.sendMessage(plugin.getConfigManager().getPrefix() + ChatColor.translateAlternateColorCodes('&',"&7Verwendung: &e/delete&7 auf deiner &eMap&7."));
-            }
+            player.sendMessage(plugin.getConfigManager().getPrefix() + ChatColor.translateAlternateColorCodes('&',"&7Verwendung: &e/delete&7 auf deiner &eMap&7."));
         }
 
         return true;
     }
 
     private void deleteMapWithConfirmation(Player player, SmashMap map) {
+        // Sicherheitscheck: Approved Maps dürfen nicht gelöscht werden
+        if (map.isApproved()) {
+            player.sendMessage(plugin.getConfigManager().getPrefix() + ChatColor.translateAlternateColorCodes('&', "&7Diese Map ist &aapproved&7 und kann &cnicht &7gelöscht werden!"));
+            return;
+        }
         // Bestätigungsnachricht senden
         player.sendMessage(plugin.getConfigManager().getPrefix() + ChatColor.YELLOW + "═══════════════════════════════════");
         player.sendMessage(plugin.getConfigManager().getPrefix() + ChatColor.RED + "⚠ " + ChatColor.BOLD + "WARNUNG" + ChatColor.RESET + ChatColor.RED + " ⚠");
@@ -129,6 +113,13 @@ public class DeleteCommand implements CommandExecutor {
     }
 
     public void performMapDeletion(Player player, SmashMap map) {
+        // Sicherheitscheck: Approved Maps dürfen nicht gelöscht werden (Failsafe bei /confirm)
+        if (map.isApproved()) {
+            player.sendMessage(plugin.getConfigManager().getPrefix() + ChatColor.translateAlternateColorCodes('&', "&7Approved &eMaps &7können &cnicht &7gelöscht werden!"));
+            // Eventuelles Pending aufräumen
+            plugin.getMapManager().removePendingDeletion(player.getUniqueId());
+            return;
+        }
         // Spieler zum Spawn teleportieren
         player.performCommand("spawn");
 

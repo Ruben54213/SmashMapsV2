@@ -48,7 +48,7 @@ public class MapInfoGui {
                 bm.setDisplayName("§cKeine Map-Daten gefunden");
                 barrier.setItemMeta(bm);
             }
-            inventory.setItem(13, barrier);
+            inventory.setItem(14, barrier);
             return;
         }
 
@@ -78,6 +78,26 @@ public class MapInfoGui {
             icon.setItemMeta(meta);
         }
         inventory.setItem(13, icon);
+
+        // Positions-Item mit Anzahl Items/Spawns/Zentrum
+        ItemStack positions = new ItemStack(Material.ENDER_EYE);
+        ItemMeta pmeta = positions.getItemMeta();
+        if (pmeta != null) {
+            String world = map.getWorldName();
+            int itemCount = plugin.getMapManager().getItemSpawns(world).size();
+            int spawnCount = plugin.getMapManager().getPlayerSpawns(world).size();
+            int centerCount = plugin.getMapManager().getCenter(world) != null ? 1 : 0;
+
+            pmeta.setDisplayName("§5§lPositionen");
+            pmeta.setLore(Arrays.asList(
+                    "§7↪ §fItems: §d" + itemCount,
+                    "§7↪ §fSpawns: §d" + spawnCount,
+                    "§7↪ §fZentrum: §d" + centerCount
+            ));
+            positions.setItemMeta(pmeta);
+        }
+        // freier Slot links neben dem Icon
+        inventory.setItem(12, positions);
     }
 
     public void open() { player.openInventory(inventory); }

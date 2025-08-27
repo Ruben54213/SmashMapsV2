@@ -355,7 +355,7 @@ public class ItemManager implements Listener {
         World world = player.getWorld();
         String worldName = world.getName().replace("maps/", "");
         SmashMap map = plugin.getMapManager().getMapByWorld(worldName);
-        if (map != null && map.getOwnerUUID() != null && map.getOwnerUUID().equals(player.getUniqueId())) {
+        if (map != null && !map.isApproved() && map.getOwnerUUID() != null && map.getOwnerUUID().equals(player.getUniqueId())) {
             player.getInventory().setItem(plugin.getConfigManager().getEditModeSlot(), createEditModeItem());
             // Positionen-Setzen und Einstellungen erscheinen nur im Bearbeitungsmodus, daher hier nicht automatisch setzen
         }
@@ -364,10 +364,20 @@ public class ItemManager implements Listener {
     }
 
     public void giveEditModeItems(Player player) {
-        // Nur Inhaber dürfen den Modus nutzen
+        // Map bestimmen
         String worldName = player.getWorld().getName().replace("maps/", "");
         SmashMap map = plugin.getMapManager().getMapByWorld(worldName);
-        if (map == null || map.getOwnerUUID() == null || !map.getOwnerUUID().equals(player.getUniqueId())) {
+        if (map == null) {
+            player.sendMessage(plugin.getConfigManager().getPrefix() + org.bukkit.ChatColor.RED + "Keine Map-Daten gefunden.");
+            return;
+        }
+        // Approved-Maps können nicht bearbeitet werden
+        if (map.isApproved()) {
+            player.sendMessage(plugin.getConfigManager().getPrefix() + org.bukkit.ChatColor.RED + "Diese Map ist bereits approved. Der Bearbeitungsmodus ist deaktiviert.");
+            return;
+        }
+        // Nur Inhaber dürfen den Modus nutzen
+        if (map.getOwnerUUID() == null || !map.getOwnerUUID().equals(player.getUniqueId())) {
             player.sendMessage(plugin.getConfigManager().getPrefix() + org.bukkit.ChatColor.RED + "Nur der Inhaber kann den Bearbeitungsmodus verwenden.");
             return;
         }
@@ -377,8 +387,7 @@ public class ItemManager implements Listener {
         // Inventar komplett leeren
         clearAllInventory(player);
 
-        // Axt, Barrier und „Positionen Setzen“ (Slot 8)
-        player.getInventory().setItem(0, createWorldEditAxe());
+        // Bearbeitungsmodus: Exit (Slot 7) und „Positionen Setzen“ (Slot 8)
         player.getInventory().setItem(7, createEditModeExitItem());
         player.getInventory().setItem(8, createPositionsSetItem());
 

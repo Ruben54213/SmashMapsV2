@@ -112,6 +112,8 @@ public class MapManager {
     public boolean deleteMap(int mapId) {
         SmashMap map = getMapById(mapId);
         if (map == null) return false;
+        // Approved maps dürfen grundsätzlich nicht gelöscht werden
+        if (map.isApproved()) return false;
 
         // Remove from memory
         List<SmashMap> ownerMaps = playerMaps.get(map.getOwnerUUID());

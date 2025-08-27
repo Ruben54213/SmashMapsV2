@@ -51,6 +51,9 @@ public final class SmashMapsV2 extends JavaPlugin {
         // Register listeners
         registerListeners();
 
+        // Safety cleanup: remove any leftover position markers (ArmorStands) on startup
+        this.positionDisplayManager.cleanupAllMarkersOnStartup();
+
         // Register commands
         registerCommands();
 

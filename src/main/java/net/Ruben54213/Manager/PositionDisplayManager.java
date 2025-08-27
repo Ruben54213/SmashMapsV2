@@ -1,10 +1,12 @@
 package net.Ruben54213.Manager;
 
 import net.Ruben54213.SmashMapsV2;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.Chunk;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -20,6 +22,9 @@ import java.util.*;
 public class PositionDisplayManager {
 
     private final SmashMapsV2 plugin;
+
+    // Scoreboard-Tag zur eindeutigen Kennzeichnung unserer Marker/Hologramme
+    private static final String MARKER_TAG = "smv2_marker";
 
     // Sichtbare Marker pro Spieler
     private final Map<UUID, List<Entity>> visibleMarkers = new HashMap<>();
@@ -133,6 +138,7 @@ public class PositionDisplayManager {
             s.setCustomNameVisible(true);
             s.setCustomName(text);
             s.setSmall(true);
+            try { s.addScoreboardTag(MARKER_TAG); } catch (Throwable ignored) {}
         });
     }
 
@@ -143,6 +149,7 @@ public class PositionDisplayManager {
             s.setGravity(false);
             s.getEquipment().setHelmet(displayItem);
             s.setSmall(true);
+            try { s.addScoreboardTag(MARKER_TAG); } catch (Throwable ignored) {}
         });
     }
 
@@ -177,7 +184,8 @@ public class PositionDisplayManager {
             player.sendMessage(plugin.getConfigManager().getPrefix() + ChatColor.RED + "Position entfernt.");
         }
         hidePositions(player);
-        if (isEyeToggled(player)) showPositions(player);
+        boolean holdingSign = plugin.getItemManager().isPositionsSetItem(player.getInventory().getItemInMainHand());
+        if (isEyeToggled(player) || holdingSign) showPositions(player);
 
         // Scoreboards aktualisieren
         plugin.getScoreboardManager().updateAllScoreboards();
@@ -228,5 +236,75 @@ public class PositionDisplayManager {
     public void resetPlayer(Player player) {
         hidePositions(player);
         eyeToggle.remove(player.getUniqueId());
+    }
+
+    // Startup safety: remove ALL ArmorStands in ALL worlds, as requested
+    public void cleanupAllMarkersOnStartup() {
+        // Clear internal state first (in case of /reload with players online later)
+        visibleMarkers.clear();
+        eyeToggle.clear();
+
+        // Immediate pass: remove every ArmorStand in every loaded world
+        for (World world : Bukkit.getWorlds()) {
+            for (ArmorStand as : world.getEntitiesByClass(ArmorStand.class)) {
+                as.remove();
+            }
+        }
+
+        // Delayed follow-up to catch entities that appeared shortly after startup
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+            for (World world : Bukkit.getWorlds()) {
+                for (ArmorStand as : world.getEntitiesByClass(ArmorStand.class)) {
+                    as.remove();
+                }
+            }
+        }, 100L);
+    }
+
+    public void cleanupWorld(World world) {
+        for (ArmorStand as : world.getEntitiesByClass(ArmorStand.class)) {
+            if (shouldRemove(as)) {
+                as.remove();
+            }
+        }
+    }
+
+    public void cleanupChunk(Chunk chunk) {
+        for (Entity e : chunk.getEntities()) {
+            if (e instanceof ArmorStand) {
+                ArmorStand as = (ArmorStand) e;
+                if (shouldRemove(as)) {
+                    as.remove();
+                }
+            }
+        }
+    }
+
+    private boolean shouldRemove(ArmorStand as) {
+        try {
+            if (as.getScoreboardTags().contains(MARKER_TAG)) return true;
+        } catch (Throwable ignored) {}
+
+        // Match our known hologram texts without color codes
+        try {
+            String name = as.getCustomName();
+            if (name != null) {
+                String plain = ChatColor.stripColor(name);
+                if (plain != null) {
+                    if (plain.contains("Item") || plain.contains("Spawn") || plain.contains("Center")) {
+                        return true;
+                    }
+                }
+            }
+        } catch (Throwable ignored) {}
+
+        // Heuristic fallback matching our spawn flags
+        try {
+            if (as.isInvisible() && as.isSmall() && !as.hasGravity()) {
+                // Many plugins use marker for holograms; we are more specific if possible
+                if (as.isMarker()) return true;
+            }
+        } catch (Throwable ignored) {}
+        return false;
     }
 }
