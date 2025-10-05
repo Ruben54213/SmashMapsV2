@@ -19,6 +19,9 @@ commands:
   approve:
     description: Genehmigt eine Map
     usage: /approve <ID oder Name>
+  unapprove:
+    description: Hebt die Genehmigung einer Map auf
+    usage: /unapprove [ID oder Name]
   save:
     description: Speichert Maps
     usage: /save
@@ -72,6 +75,9 @@ permissions:
     default: op
   smashmaps.approve:
     description: Allows approving maps
+    default: op
+  smashmaps.unapprove:
+    description: Allows unapproving maps
     default: op
   smashmaps.save:
     description: Allows saving maps to cloud storage

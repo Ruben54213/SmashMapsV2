@@ -125,6 +125,7 @@ public final class SmashMapsV2 extends JavaPlugin {
         getCommand("delete").setExecutor(new DeleteCommand(this));
         getCommand("smashmaps").setExecutor(new ReloadCommand(this));
         getCommand("approve").setExecutor(new ApproveCommand(this));
+        getCommand("unapprove").setExecutor(new UnapproveCommand(this));
         getCommand("save").setExecutor(new SaveCommand(this));
         getCommand("createmap").setExecutor(new CreateMapCommand(this));
         getCommand("maps").setExecutor(new MapsCommand(this));
