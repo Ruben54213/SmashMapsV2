@@ -125,7 +125,7 @@ public class DeleteCommand implements CommandExecutor {
 
         // Kurze Verzögerung, dann Map löschen
         plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
-            player.sendMessage(plugin.getConfigManager().getPrefix() + ChatColor.YELLOW + "§cLösche §eMap §7'§e" + map.getName() + "§7'...");
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', plugin.getConfigManager().getPrefix() + ChatColor.YELLOW + "§cLösche §eMap §7'§e" + map.getName() + "§7'..."));
 
             // Alle Spieler aus der Map-Welt teleportieren
             World mapWorld = Bukkit.getWorld(map.getWorldName());
