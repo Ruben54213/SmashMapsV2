@@ -10,6 +10,7 @@ import net.Ruben54213.Manager.MinIOManager;
 import net.Ruben54213.Manager.ItemManager;
 import net.Ruben54213.Manager.MapManager;
 import net.Ruben54213.Manager.WorldManager;
+import net.Ruben54213.Manager.SpawnManager;
 import net.Ruben54213.Tasks.TitleReminderTask;
 import net.Ruben54213.Tasks.ScoreboardUpdateTask;
 import org.bukkit.Bukkit;
@@ -30,6 +31,7 @@ public final class SmashMapsV2 extends JavaPlugin {
     private TitleReminderTask titleReminderTask;
     private ScoreboardUpdateTask scoreboardUpdateTask;
     private PositionDisplayManager positionDisplayManager;
+    private SpawnManager spawnManager;
 
     @Override
     public void onEnable() {
@@ -44,6 +46,7 @@ public final class SmashMapsV2 extends JavaPlugin {
         this.scoreboardManager = new ScoreboardManager(this);
         this.minIOManager = new MinIOManager(this);
         this.positionDisplayManager = new PositionDisplayManager(this);
+        this.spawnManager = new SpawnManager(this);
 
         // Register BungeeCord plugin messaging channel
         this.getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
@@ -111,6 +114,7 @@ public final class SmashMapsV2 extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new MapWorldListener(this), this);
         getServer().getPluginManager().registerEvents(new PositionHotbarListener(this), this);
         getServer().getPluginManager().registerEvents(new WeatherDisabler(this), this);
+        getServer().getPluginManager().registerEvents(new SpawnListener(this), this);
 
         getServer().getPluginManager().registerEvents(itemManager, this);
     }
@@ -126,6 +130,9 @@ public final class SmashMapsV2 extends JavaPlugin {
         getCommand("maps").setExecutor(new MapsCommand(this));
         getCommand("rename").setExecutor(new RenameCommand(this));
         getCommand("confirm").setExecutor(new ConfirmCommand(this));
+        getCommand("setspawn").setExecutor(new SetSpawnCommand(this));
+        getCommand("spawn").setExecutor(new SpawnCommand(this));
+        getCommand("rc").setExecutor(new RcCommand(this));
     }
 
     private void startTitleReminderTask() {
@@ -177,5 +184,9 @@ public final class SmashMapsV2 extends JavaPlugin {
 
     public PositionDisplayManager getPositionDisplayManager() {
         return positionDisplayManager;
+    }
+
+    public SpawnManager getSpawnManager() {
+        return spawnManager;
     }
 }

@@ -34,6 +34,17 @@ commands:
   confirm:
     description: Bestätigt eine ausstehende Aktion
     usage: /confirm
+  setspawn:
+    description: Setzt den Server-Spawnpunkt und speichert ihn in spawn.yml
+    usage: /setspawn
+    permission: yukismash.setspawn
+  spawn:
+    description: Teleportiert dich zum Server-Spawnpunkt
+    usage: /spawn
+  rc:
+    description: Führt ItemsAdder Reload und ZIP aus
+    usage: /rc
+    permission: yuki.rc.command
 
 permissions:
   smashmaps.admin:
@@ -71,4 +82,12 @@ permissions:
   smashmaps.delete:
     default: op
   smashmaps.info:
+    default: op
+  yukismash.setspawn:
+    description: Erlaubt das Setzen des Server-Spawnpunkts
+    default: op
+
+
+  yuki.rc.command:
+    description: Erlaubt den RC-Befehl (/rc)
     default: op

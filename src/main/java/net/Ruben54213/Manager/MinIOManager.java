@@ -31,8 +31,8 @@ public class MinIOManager {
 
         // MinIO Client konfigurieren
         this.minioClient = MinioClient.builder()
-                .endpoint("http://localhost:9000")
-                .credentials("admin", "dfd!d3o4zgWHRSrgz23gred")
+                .endpoint("http://5.83.150.54:9000")
+                .credentials("admin", "8NWfvrJawA8T8V")
                 .build();
 
         // Bucket erstellen falls nicht vorhanden
