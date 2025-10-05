@@ -89,7 +89,7 @@ public class DeleteCommand implements CommandExecutor {
         player.sendMessage(plugin.getConfigManager().getPrefix() + ChatColor.YELLOW + "═══════════════════════════════════");
         player.sendMessage(plugin.getConfigManager().getPrefix() + ChatColor.RED + "⚠ " + ChatColor.BOLD + "WARNUNG" + ChatColor.RESET + ChatColor.RED + " ⚠");
         player.sendMessage(plugin.getConfigManager().getPrefix() + ChatColor.GRAY + "§7Du bist dabei, die §eMap§7 zu §clöschen§7:");
-        player.sendMessage(plugin.getConfigManager().getPrefix() + ChatColor.WHITE + "Name: " + ChatColor.GOLD + map.getName());
+        player.sendMessage(ChatColor.translateAlternateColorCodes('&',plugin.getConfigManager().getPrefix() + ChatColor.WHITE + "Name: " + ChatColor.GOLD + map.getName()));
         player.sendMessage(plugin.getConfigManager().getPrefix() + ChatColor.WHITE + "ID: " + ChatColor.GOLD + map.getId());
         player.sendMessage(plugin.getConfigManager().getPrefix() + ChatColor.RED + "§7Diese §eAktion §7kann §cNICHT §7rückgängig gemacht werden!");
         player.sendMessage(plugin.getConfigManager().getPrefix() + ChatColor.YELLOW + "═══════════════════════════════════");
@@ -145,7 +145,7 @@ public class DeleteCommand implements CommandExecutor {
 
                 if (success) {
                     // Erfolgreiche Löschung
-                    player.sendMessage(plugin.getConfigManager().getPrefix() + ChatColor.GREEN + "✓§7 Map '§e" + map.getName() + "§7' wurde §aerfolgreich §7gelöscht!");
+                    player.sendMessage(ChatColor.translateAlternateColorCodes('&', plugin.getConfigManager().getPrefix() + ChatColor.GREEN + "✓§7 Map '§e" + map.getName() + "§7' wurde §aerfolgreich §7gelöscht!"));
 
                     // Success Sound
                     player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.0f);
