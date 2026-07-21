@@ -23,20 +23,31 @@ import java.util.zip.ZipOutputStream;
 public class MinIOManager {
 
     private final SmashMapsV2 plugin;
-    private final MinioClient minioClient;
-    private final String bucketName = "smashmaps";
+    private MinioClient minioClient;
+    private String bucketName;
 
     public MinIOManager(SmashMapsV2 plugin) {
         this.plugin = plugin;
+        buildClient();
+    }
 
-        // MinIO Client konfigurieren
+    private void buildClient() {
+        // MinIO Client aus der config.yml konfigurieren
+        this.bucketName = plugin.getConfigManager().getDatabaseBucketName();
         this.minioClient = MinioClient.builder()
-                .endpoint("http://5.83.150.54:9000")
-                .credentials("admin", "8NWfvrJawA8T8V")
+                .endpoint(plugin.getConfigManager().getDatabaseEndpoint())
+                .credentials(plugin.getConfigManager().getDatabaseAccessKey(), plugin.getConfigManager().getDatabaseSecretKey())
                 .build();
 
         // Bucket erstellen falls nicht vorhanden
         ensureBucketExists();
+    }
+
+    /**
+     * Baut den MinIO-Client neu aus der aktuellen config.yml auf (z.B. nach /smashmaps reload).
+     */
+    public void reload() {
+        buildClient();
     }
 
     private void ensureBucketExists() {

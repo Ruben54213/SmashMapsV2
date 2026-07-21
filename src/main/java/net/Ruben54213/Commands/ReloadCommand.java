@@ -24,6 +24,11 @@ public class ReloadCommand implements CommandExecutor {
         // Reload config
         plugin.getConfigManager().reloadConfig();
 
+        // Reload database (MinIO) connection with updated config values
+        if (plugin.getMinIOManager() != null) {
+            plugin.getMinIOManager().reload();
+        }
+
         // Update all player items
         if (plugin.getItemManager() != null) {
             plugin.getItemManager().updateAllPlayersItems();

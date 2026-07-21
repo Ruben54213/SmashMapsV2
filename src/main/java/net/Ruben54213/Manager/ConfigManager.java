@@ -178,6 +178,23 @@ public class ConfigManager {
     public String getMapInfoGuiTitle() { return ChatColor.translateAlternateColorCodes('&', config.getString("gui.map_info.title", "&8Karteninformationen")); }
     public String getMapSettingsGuiTitle() { return ChatColor.translateAlternateColorCodes('&', config.getString("gui.map_settings.title", "&8Karteneinstellungen")); }
 
+    // Database / Storage (MinIO) Configuration
+    public String getDatabaseEndpoint() {
+        return config.getString("database.endpoint", "http://localhost:9000");
+    }
+
+    public String getDatabaseAccessKey() {
+        return config.getString("database.access_key", "");
+    }
+
+    public String getDatabaseSecretKey() {
+        return config.getString("database.secret_key", "");
+    }
+
+    public String getDatabaseBucketName() {
+        return config.getString("database.bucket_name", "smashmaps");
+    }
+
     public Sound getSound(String soundType) {
         String soundName = config.getString("sounds." + soundType, "UI_BUTTON_CLICK");
         try {
