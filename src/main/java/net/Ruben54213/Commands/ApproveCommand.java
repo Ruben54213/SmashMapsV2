@@ -48,7 +48,8 @@ public class ApproveCommand implements CommandExecutor {
             int id = Integer.parseInt(joined);
             SmashMap map = plugin.getMapManager().getMapById(id);
             if (map != null) {
-                if (!map.isApproved()) {
+                boolean wasApproved = map.isApproved();
+                if (!wasApproved) {
                     map.setApproved(true);
                     plugin.getMapManager().updateMap(map);
                 }
@@ -56,6 +57,9 @@ public class ApproveCommand implements CommandExecutor {
                         "§aMap mit ID §e" + id + " §a('§e" + map.getName() + "§a') wurde erfolgreich approved!");
                 player.sendMessage(message);
                 player.playSound(player.getLocation(), plugin.getConfigManager().getSound("map_created"), 1.0f, 1.0f);
+                if (!wasApproved) {
+                    onMapApproved(map, player);
+                }
             } else {
                 String message = ChatColor.translateAlternateColorCodes('&', plugin.getConfigManager().getPrefix() +
                         "§cEs wurde keine Map mit der ID '§e" + id + "§c' gefunden!");
@@ -76,7 +80,8 @@ public class ApproveCommand implements CommandExecutor {
                 .orElse(null);
 
         if (matched != null) {
-            if (!matched.isApproved()) {
+            boolean wasApproved = matched.isApproved();
+            if (!wasApproved) {
                 matched.setApproved(true);
                 plugin.getMapManager().updateMap(matched);
             }
@@ -84,6 +89,9 @@ public class ApproveCommand implements CommandExecutor {
                     "§aMap '§e" + matched.getName() + "§a' wurde erfolgreich approved!");
             player.sendMessage(message);
             player.playSound(player.getLocation(), plugin.getConfigManager().getSound("map_created"), 1.0f, 1.0f);
+            if (!wasApproved) {
+                onMapApproved(matched, player);
+            }
         } else {
             // Fallback: vorhandene Logik versuchen (falls MapManager intern andere Regeln hat)
             if (plugin.getMapManager().approveMap(userInput)) {
@@ -91,6 +99,10 @@ public class ApproveCommand implements CommandExecutor {
                         "§aMap '§e" + userInput + "§a' wurde erfolgreich approved!");
                 player.sendMessage(message);
                 player.playSound(player.getLocation(), plugin.getConfigManager().getSound("map_created"), 1.0f, 1.0f);
+                SmashMap approvedMap = plugin.getMapManager().getMapByName(userInput);
+                if (approvedMap != null) {
+                    onMapApproved(approvedMap, player);
+                }
             } else {
                 String message = ChatColor.translateAlternateColorCodes('&', plugin.getConfigManager().getPrefix() +
                         "§cMap '§e" + userInput + "§c' wurde nicht gefunden!");
@@ -100,6 +112,42 @@ public class ApproveCommand implements CommandExecutor {
         }
 
         return true;
+    }
+
+    // Wird ausgeführt, nachdem eine Map frisch approved wurde:
+    // löst automatisch einen Save aus und bringt Spieler, die sich gerade in der
+    // Map-Welt befinden (z.B. noch im Bearbeitungsmodus), auf einen sauberen Item-Stand,
+    // damit u.a. "Positionen Anzeigen" wieder funktioniert.
+    private void onMapApproved(SmashMap map, Player approver) {
+        // Spieler, die aktuell in der Map-Welt stehen, aus dem Bearbeitungsmodus holen
+        // und ihre Items neu vergeben (sonst fehlt z.B. das "Positionen Anzeigen"-Item).
+        org.bukkit.World world = plugin.getServer().getWorld("maps/" + map.getWorldName());
+        if (world != null) {
+            for (Player online : world.getPlayers()) {
+                plugin.getItemManager().restoreMapWorldItems(online);
+            }
+        }
+
+        // Automatischen Save auslösen
+        String savingMessage = ChatColor.translateAlternateColorCodes('&', plugin.getConfigManager().getPrefix() +
+                plugin.getConfigManager().getMessage("saving_map").replace("%name%", map.getName()));
+        approver.sendMessage(savingMessage);
+
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            boolean success = plugin.getMinIOManager().saveMapToMinIO(map);
+
+            plugin.getServer().getScheduler().runTask(plugin, () -> {
+                if (success) {
+                    String successMessage = ChatColor.translateAlternateColorCodes('&', plugin.getConfigManager().getPrefix() +
+                            plugin.getConfigManager().getMessage("map_saved_success").replace("%name%", map.getName()));
+                    approver.sendMessage(successMessage);
+                } else {
+                    String errorMessage = ChatColor.translateAlternateColorCodes('&', plugin.getConfigManager().getPrefix() +
+                            plugin.getConfigManager().getMessage("map_save_error"));
+                    approver.sendMessage(errorMessage);
+                }
+            });
+        });
     }
 
     // Entfernt Farb-/Formatcodes (§ oder &-basierend) und normalisiert den Namen
