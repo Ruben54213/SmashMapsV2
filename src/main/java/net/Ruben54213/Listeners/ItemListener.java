@@ -66,7 +66,7 @@ public class ItemListener implements Listener {
 
             // Only trigger on RIGHT_CLICK
             if (event.getAction().toString().contains("RIGHT_CLICK")) {
-                player.playSound(player.getLocation(), plugin.getConfigManager().getSound("gui_open"), 1.0f, 1.0f);
+                player.playSound(player.getLocation(), plugin.getConfigManager().getSound("chest_open"), 1.0f, 1.0f);
 
                 AllMapsGui gui = new AllMapsGui(plugin, player);
                 // Register the GUI with the GuiListener

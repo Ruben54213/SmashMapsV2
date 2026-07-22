@@ -172,9 +172,11 @@ public class GuiListener implements Listener {
                     break;
                 case "filter":
                     gui.cycleFilter();
+                    player.playSound(player.getLocation(), plugin.getConfigManager().getSound("chest_open"), 0.5f, 1.5f);
                     break;
                 case "sort":
                     gui.cycleSort();
+                    player.playSound(player.getLocation(), plugin.getConfigManager().getSound("chest_open"), 0.5f, 1.5f);
                     break;
                 case "search":
                     player.closeInventory();

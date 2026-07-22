@@ -153,7 +153,7 @@ public class PlayerChatListener implements Listener {
                             "§7Suche nach: §e" + searchQuery);
                 }
 
-                player.playSound(player.getLocation(), plugin.getConfigManager().getSound("gui_open"), 1.0f, 1.0f);
+                player.playSound(player.getLocation(), plugin.getConfigManager().getSound("chest_open"), 1.0f, 1.0f);
             });
         }
     }
