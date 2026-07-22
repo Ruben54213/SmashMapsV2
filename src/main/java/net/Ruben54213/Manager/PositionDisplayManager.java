@@ -7,10 +7,15 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.Chunk;
-import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.Display;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.TextDisplay;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.Transformation;
+import org.joml.AxisAngle4f;
+import org.joml.Vector3f;
 
 import java.util.*;
 
@@ -18,6 +23,10 @@ import java.util.*;
  * Verwaltet persönliche Anzeige von Positions-Markern und persistiert Änderungen über den MapManager in der maps.yml.
  * - Enderauge toggelt dauerhafte Anzeige (bis zum erneuten Klick)
  * - Schild zeigt nur während es gehalten wird (und nur im Bearbeitungsmodus via Listener)
+ *
+ * Verwendet ItemDisplay/TextDisplay (statt ArmorStand-Tricks) für die Marker,
+ * da diese speziell für genau diesen Zweck existieren und garantiert vom Client
+ * gerendert werden (kein Invisible/Marker-Flag-Fallstrick).
  */
 public class PositionDisplayManager {
 
@@ -67,32 +76,31 @@ public class PositionDisplayManager {
         String worldName = player.getWorld().getName().replace("maps/", "");
         List<Entity> spawned = new ArrayList<>();
 
-        // Itemspawns: statischer Marker (ArmorStand mit Chest-Helm) + Hologramm
-        for (Location loc : plugin.getMapManager().getItemSpawns(worldName)) {
-            Location base = ensureWorld(centerOfBlock(loc).add(0, 0.05, 0), player.getWorld());
-            ArmorStand marker = spawnMarker(base, new ItemStack(Material.CHEST));
-            ArmorStand holo = spawnHologram(base.clone().add(0, 1.25, 0), ChatColor.GREEN + "" + ChatColor.BOLD + "Item");
-            spawned.add(marker);
-            spawned.add(holo);
-        }
+        try {
+            // Itemspawns: Marker (Kiste) + Hologramm
+            for (Location loc : plugin.getMapManager().getItemSpawns(worldName)) {
+                Location base = ensureWorld(centerOfBlock(loc).add(0, 0.1, 0), player.getWorld());
+                spawned.add(spawnMarker(base, new ItemStack(Material.CHEST)));
+                spawned.add(spawnHologram(base.clone().add(0, 1.0, 0), ChatColor.GREEN + "" + ChatColor.BOLD + "Item"));
+            }
 
-        // Spielerspawns: Marker (Steve-Kopf) + Hologramm
-        for (Location loc : plugin.getMapManager().getPlayerSpawns(worldName)) {
-            Location base = ensureWorld(centerOfBlock(loc).add(0, 0.05, 0), player.getWorld());
-            ArmorStand marker = spawnMarker(base, new ItemStack(Material.PLAYER_HEAD));
-            ArmorStand holo = spawnHologram(base.clone().add(0, 1.25, 0), ChatColor.AQUA + "" + ChatColor.BOLD + "Spawn");
-            spawned.add(marker);
-            spawned.add(holo);
-        }
+            // Spielerspawns: Marker (Steve-Kopf) + Hologramm
+            for (Location loc : plugin.getMapManager().getPlayerSpawns(worldName)) {
+                Location base = ensureWorld(centerOfBlock(loc).add(0, 0.1, 0), player.getWorld());
+                spawned.add(spawnMarker(base, new ItemStack(Material.PLAYER_HEAD)));
+                spawned.add(spawnHologram(base.clone().add(0, 1.0, 0), ChatColor.AQUA + "" + ChatColor.BOLD + "Spawn"));
+            }
 
-        // Center: Marker (Beacon) + Hologramm
-        Location center = plugin.getMapManager().getCenter(worldName);
-        if (center != null) {
-            Location base = ensureWorld(centerOfBlock(center).add(0, 0.05, 0), player.getWorld());
-            ArmorStand marker = spawnMarker(base, new ItemStack(Material.BEACON));
-            ArmorStand holo = spawnHologram(base.clone().add(0, 1.25, 0), ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "Center");
-            spawned.add(marker);
-            spawned.add(holo);
+            // Center: Marker (Beacon) + Hologramm
+            Location center = plugin.getMapManager().getCenter(worldName);
+            if (center != null) {
+                Location base = ensureWorld(centerOfBlock(center).add(0, 0.1, 0), player.getWorld());
+                spawned.add(spawnMarker(base, new ItemStack(Material.BEACON)));
+                spawned.add(spawnHologram(base.clone().add(0, 1.0, 0), ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "Center"));
+            }
+        } catch (Exception e) {
+            plugin.getLogger().severe("Fehler beim Anzeigen der Positionen für " + player.getName() + ": " + e.getMessage());
+            e.printStackTrace();
         }
 
         // Sichtbarkeit festlegen
@@ -130,26 +138,28 @@ public class PositionDisplayManager {
         return loc;
     }
 
-    private ArmorStand spawnHologram(Location loc, String text) {
-        return loc.getWorld().spawn(loc, ArmorStand.class, s -> {
-            s.setInvisible(true);
-            s.setMarker(true);
-            s.setGravity(false);
-            s.setCustomNameVisible(true);
-            s.setCustomName(text);
-            s.setSmall(true);
-            try { s.addScoreboardTag(MARKER_TAG); } catch (Throwable ignored) {}
+    private TextDisplay spawnHologram(Location loc, String text) {
+        return loc.getWorld().spawn(loc, TextDisplay.class, td -> {
+            td.setText(text);
+            td.setBillboard(Display.Billboard.CENTER);
+            td.setSeeThrough(true);
+            td.setShadowed(false);
+            td.setBackgroundColor(org.bukkit.Color.fromARGB(0, 0, 0, 0));
+            try { td.addScoreboardTag(MARKER_TAG); } catch (Throwable ignored) {}
         });
     }
 
-    private ArmorStand spawnMarker(Location loc, ItemStack displayItem) {
-        return loc.getWorld().spawn(loc, ArmorStand.class, s -> {
-            s.setInvisible(true);
-            s.setMarker(true);
-            s.setGravity(false);
-            s.getEquipment().setHelmet(displayItem);
-            s.setSmall(true);
-            try { s.addScoreboardTag(MARKER_TAG); } catch (Throwable ignored) {}
+    private ItemDisplay spawnMarker(Location loc, ItemStack displayItem) {
+        return loc.getWorld().spawn(loc, ItemDisplay.class, id -> {
+            id.setItemStack(displayItem);
+            id.setBillboard(Display.Billboard.CENTER);
+            id.setTransformation(new Transformation(
+                    new Vector3f(0f, 0f, 0f),
+                    new AxisAngle4f(0f, 0f, 0f, 1f),
+                    new Vector3f(0.6f, 0.6f, 0.6f),
+                    new AxisAngle4f(0f, 0f, 0f, 1f)
+            ));
+            try { id.addScoreboardTag(MARKER_TAG); } catch (Throwable ignored) {}
         });
     }
 
@@ -238,73 +248,70 @@ public class PositionDisplayManager {
         eyeToggle.remove(player.getUniqueId());
     }
 
-    // Startup safety: remove ALL ArmorStands in ALL worlds, as requested
+    // Startup safety: remove ALL eigenen Marker/Hologramme in ALL worlds
     public void cleanupAllMarkersOnStartup() {
         // Clear internal state first (in case of /reload with players online later)
         visibleMarkers.clear();
         eyeToggle.clear();
 
-        // Immediate pass: remove every ArmorStand in every loaded world
+        // Immediate pass
         for (World world : Bukkit.getWorlds()) {
-            for (ArmorStand as : world.getEntitiesByClass(ArmorStand.class)) {
-                as.remove();
-            }
+            removeAllMarkerEntities(world);
         }
 
         // Delayed follow-up to catch entities that appeared shortly after startup
         plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
             for (World world : Bukkit.getWorlds()) {
-                for (ArmorStand as : world.getEntitiesByClass(ArmorStand.class)) {
-                    as.remove();
-                }
+                removeAllMarkerEntities(world);
             }
         }, 100L);
     }
 
-    public void cleanupWorld(World world) {
-        for (ArmorStand as : world.getEntitiesByClass(ArmorStand.class)) {
-            if (shouldRemove(as)) {
-                as.remove();
-            }
+    private void removeAllMarkerEntities(World world) {
+        for (Entity e : world.getEntitiesByClass(ItemDisplay.class)) {
+            if (shouldRemove(e)) e.remove();
         }
+        for (Entity e : world.getEntitiesByClass(TextDisplay.class)) {
+            if (shouldRemove(e)) e.remove();
+        }
+        // Aufräumen alter ArmorStand-Marker aus früheren Plugin-Versionen
+        for (Entity e : world.getEntitiesByClass(org.bukkit.entity.ArmorStand.class)) {
+            try {
+                if (e.getScoreboardTags().contains(MARKER_TAG)) e.remove();
+            } catch (Throwable ignored) {}
+        }
+    }
+
+    public void cleanupWorld(World world) {
+        removeAllMarkerEntities(world);
     }
 
     public void cleanupChunk(Chunk chunk) {
         for (Entity e : chunk.getEntities()) {
-            if (e instanceof ArmorStand) {
-                ArmorStand as = (ArmorStand) e;
-                if (shouldRemove(as)) {
-                    as.remove();
-                }
+            if ((e instanceof ItemDisplay || e instanceof TextDisplay) && shouldRemove(e)) {
+                e.remove();
             }
         }
     }
 
-    private boolean shouldRemove(ArmorStand as) {
+    private boolean shouldRemove(Entity e) {
         try {
-            if (as.getScoreboardTags().contains(MARKER_TAG)) return true;
+            if (e.getScoreboardTags().contains(MARKER_TAG)) return true;
         } catch (Throwable ignored) {}
 
-        // Match our known hologram texts without color codes
+        // Match our known hologram texts without color codes (Fallback für alte Marker)
         try {
-            String name = as.getCustomName();
-            if (name != null) {
-                String plain = ChatColor.stripColor(name);
-                if (plain != null) {
-                    if (plain.contains("Item") || plain.contains("Spawn") || plain.contains("Center")) {
+            if (e instanceof TextDisplay) {
+                String text = ((TextDisplay) e).getText();
+                if (text != null) {
+                    String plain = ChatColor.stripColor(text);
+                    if (plain != null && (plain.contains("Item") || plain.contains("Spawn") || plain.contains("Center"))) {
                         return true;
                     }
                 }
             }
         } catch (Throwable ignored) {}
 
-        // Heuristic fallback matching our spawn flags
-        try {
-            if (as.isInvisible() && as.isSmall() && !as.hasGravity()) {
-                // Many plugins use marker for holograms; we are more specific if possible
-                if (as.isMarker()) return true;
-            }
-        } catch (Throwable ignored) {}
         return false;
     }
 }
